@@ -1,9 +1,9 @@
 ﻿//
 // NumericSearchQuery.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,15 @@ namespace MailKit.Search {
 	/// </remarks>
 	public class NumericSearchQuery : SearchQuery
 	{
-		internal NumericSearchQuery (SearchTerm term, ulong value) : base (term)
+		/// <summary>
+		/// Initializes a new instance of the <see cref="T:MailKit.Search.NumericSearchQuery"/> class.
+		/// </summary>
+		/// <remarks>
+		/// Creates a new numeric search query.
+		/// </remarks>
+		/// <param name="term">The search term.</param>
+		/// <param name="value">The numeric value.</param>
+		public NumericSearchQuery (SearchTerm term, ulong value) : base (term)
 		{
 			Value = value;
 		}

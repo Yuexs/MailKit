@@ -9,20 +9,15 @@
     perhaps the BDAT command could be used always when the server supports the
     CHUNKING extension to avoid needing to byte-stuff the message?)
   * Throw an exception if the MimeMessage is larger than the SIZE value?
-* POP3 Client
-  * Rename Pop3Client.DeleteMessage() to Pop3Client.Delete()? Less verbose...
 * IMAP4 Client
+  * Consolidate MessageFlagsChanged, MessageLabelsChanged, and ModSeqChanged events into a single event?
   * Extensions:
     * BINARY
     * CATENATE
-    * LIST-EXTENDED (Note: partially implemented already for getting the special folders)
+    * LIST-EXTENDED (Note: partially implemented already)
     * CONVERT (Note: none of the mainstream IMAP servers seem to support this)
     * ANNOTATE
-    * METADATA
     * NOTIFY (Note: only Dovecot seems to support this)
-    * FILTERS (Note: none of the mainstream IMAP servers seem to support this)
-    * LIST-STATUS (Note: only Dovecot seems to support this)
-    * CREATE-SPECIAL-USE (Note: not widely supported)
     * MULTISEARCH (Note: none of the mainstream IMAP servers seem to support this)
 * Maildir
 * Thunderbird mbox folder trees

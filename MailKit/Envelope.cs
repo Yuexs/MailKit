@@ -1,9 +1,9 @@
 ﻿//
 // Envelope.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -275,14 +275,20 @@ namespace MailKit {
 				builder.Append ("NIL ");
 			}
 
-			if (InReplyTo != null)
-				builder.AppendFormat ("{0} ", MimeUtils.Quote (InReplyTo));
-			else
+			if (InReplyTo != null) {
+				if (InReplyTo.Length > 1 && InReplyTo[0] != '<' && InReplyTo[InReplyTo.Length - 1] != '>')
+					builder.AppendFormat ("{0} ", MimeUtils.Quote ('<' + InReplyTo + '>'));
+				else
+					builder.AppendFormat ("{0} ", MimeUtils.Quote (InReplyTo));
+			} else
 				builder.Append ("NIL ");
 
-			if (MessageId != null)
-				builder.AppendFormat ("{0}", MimeUtils.Quote (MessageId));
-			else
+			if (MessageId != null) {
+				if (MessageId.Length > 1 && MessageId[0] != '<' && MessageId[MessageId.Length - 1] != '>')
+					builder.AppendFormat ("{0}", MimeUtils.Quote ('<' + MessageId + '>'));
+				else
+					builder.AppendFormat ("{0}", MimeUtils.Quote (MessageId));
+			} else
 				builder.Append ("NIL");
 
 			builder.Append (')');
@@ -293,8 +299,8 @@ namespace MailKit {
 		/// </summary>
 		/// <remarks>
 		/// <para>The returned string can be parsed by <see cref="TryParse(string,out Envelope)"/>.</para>
-		/// <para>Note: The syntax of the string returned, while similar to IMAP's ENVELOPE syntax,
-		/// is not completely compatible.</para>
+		/// <note type="warning">The syntax of the string returned, while similar to IMAP's ENVELOPE syntax,
+		/// is not completely compatible.</note>
 		/// </remarks>
 		/// <returns>A <see cref="System.String"/> that represents the current <see cref="MailKit.Envelope"/>.</returns>
 		public override string ToString ()
@@ -357,6 +363,7 @@ namespace MailKit {
 		static bool TryParse (string text, ref int index, out MailboxAddress mailbox)
 		{
 			string name, route, user, domain, address;
+			DomainList domains;
 
 			mailbox = null;
 
@@ -387,8 +394,8 @@ namespace MailKit {
 
 			address = domain != null ? user + "@" + domain : user;
 
-			if (route != null)
-				mailbox = new MailboxAddress (name, route.Split (','), address);
+			if (route != null && DomainList.TryParse (route, out domains))
+				mailbox = new MailboxAddress (name, domains, address);
 			else
 				mailbox = new MailboxAddress (name, address);
 
@@ -520,8 +527,8 @@ namespace MailKit {
 				To = to,
 				Cc = cc,
 				Bcc = bcc,
-				InReplyTo = inreplyto != null ? MimeUtils.EnumerateReferences (inreplyto).FirstOrDefault () : null,
-				MessageId = messageid != null ? MimeUtils.EnumerateReferences (messageid).FirstOrDefault () : null
+				InReplyTo = inreplyto != null ? MimeUtils.EnumerateReferences (inreplyto).FirstOrDefault () ?? inreplyto : null,
+				MessageId = messageid != null ? MimeUtils.EnumerateReferences (messageid).FirstOrDefault () ?? messageid : null
 			};
 
 			return true;
@@ -532,7 +539,8 @@ namespace MailKit {
 		/// </summary>
 		/// <remarks>
 		/// <para>Parses an Envelope value from the specified text.</para>
-		/// <para>Note: This syntax, while similar to IMAP's ENVELOPE syntax, is not completely compatible.</para>
+		/// <note type="warning">This syntax, while similar to IMAP's ENVELOPE syntax, is not
+		/// completely compatible.</note>
 		/// </remarks>
 		/// <returns><c>true</c>, if the envelope was successfully parsed, <c>false</c> otherwise.</returns>
 		/// <param name="text">The text to parse.</param>
@@ -543,7 +551,7 @@ namespace MailKit {
 		public static bool TryParse (string text, out Envelope envelope)
 		{
 			if (text == null)
-				throw new ArgumentNullException ("text");
+				throw new ArgumentNullException (nameof (text));
 
 			int index = 0;
 

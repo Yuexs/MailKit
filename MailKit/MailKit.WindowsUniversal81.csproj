@@ -20,8 +20,8 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\lib\wpa81\</OutputPath>
-    <IntermediateOutputPath>obj\Debug\lib\wpa81\</IntermediateOutputPath>
+    <OutputPath>bin\Debug\wpa81\</OutputPath>
+    <IntermediateOutputPath>obj\Debug\wpa81\</IntermediateOutputPath>
     <DefineConstants>TRACE;DEBUG;NETFX_CORE;WINDOWS_APP;WINDOWS_PHONE_APP</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -30,9 +30,9 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\lib\wpa81\</OutputPath>
-    <IntermediateOutputPath>obj\Release\lib\wpa81\</IntermediateOutputPath>
-    <DocumentationFile>bin\Release\lib\wpa81\MailKit.xml</DocumentationFile>
+    <OutputPath>bin\Release\wpa81\</OutputPath>
+    <IntermediateOutputPath>obj\Release\wpa81\</IntermediateOutputPath>
+    <DocumentationFile>bin\Release\wpa81\MailKit.xml</DocumentationFile>
     <DefineConstants>TRACE;NETFX_CORE;WINDOWS_APP;WINDOWS_PHONE_APP</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -59,6 +59,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Net\Imap\AsyncImapClient.cs" />
+    <Compile Include="Net\Imap\ImapCallbacks.cs" />
     <Compile Include="Net\Imap\ImapCapabilities.cs" />
     <Compile Include="Net\Imap\ImapClient.cs" />
     <Compile Include="Net\Imap\ImapCommand.cs" />
@@ -68,6 +70,9 @@
     <Compile Include="Net\Imap\ImapEngine.cs" />
     <Compile Include="Net\Imap\ImapFolder.cs" />
     <Compile Include="Net\Imap\ImapFolderConstructorArgs.cs" />
+    <Compile Include="Net\Imap\ImapFolderFetch.cs" />
+    <Compile Include="Net\Imap\ImapFolderFlags.cs" />
+    <Compile Include="Net\Imap\ImapFolderSearch.cs" />
     <Compile Include="Net\Imap\ImapImplementation.cs" />
     <Compile Include="Net\Imap\ImapProtocolException.cs" />
     <Compile Include="Net\Imap\ImapResponseCode.cs" />
@@ -75,6 +80,7 @@
     <Compile Include="Net\Imap\ImapStream.cs" />
     <Compile Include="Net\Imap\ImapToken.cs" />
     <Compile Include="Net\Imap\ImapUtils.cs" />
+    <Compile Include="Net\Pop3\AsyncPop3Client.cs" />
     <Compile Include="Net\Pop3\Pop3Capabilities.cs" />
     <Compile Include="Net\Pop3\Pop3Client.cs" />
     <Compile Include="Net\Pop3\Pop3Command.cs" />
@@ -83,6 +89,7 @@
     <Compile Include="Net\Pop3\Pop3Language.cs" />
     <Compile Include="Net\Pop3\Pop3ProtocolException.cs" />
     <Compile Include="Net\Pop3\Pop3Stream.cs" />
+    <Compile Include="Net\Smtp\AsyncSmtpClient.cs" />
     <Compile Include="Net\Smtp\SmtpCapabilities.cs" />
     <Compile Include="Net\Smtp\SmtpClient.cs" />
     <Compile Include="Net\Smtp\SmtpCommandException.cs" />
@@ -95,6 +102,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Search\BinarySearchQuery.cs" />
     <Compile Include="Search\DateSearchQuery.cs" />
+    <Compile Include="Search\FilterSearchQuery.cs" />
     <Compile Include="Search\HeaderSearchQuery.cs" />
     <Compile Include="Search\ISearchQueryOptimizer.cs" />
     <Compile Include="Search\NumericSearchQuery.cs" />
@@ -106,6 +114,7 @@
     <Compile Include="Search\SearchTerm.cs" />
     <Compile Include="Search\SortOrder.cs" />
     <Compile Include="Search\TextSearchQuery.cs" />
+    <Compile Include="Search\UidSearchQuery.cs" />
     <Compile Include="Search\UnarySearchQuery.cs" />
     <Compile Include="Security\Ntlm\BitConverterLE.cs" />
     <Compile Include="Security\Ntlm\ChallengeResponse.cs" />
@@ -134,7 +143,9 @@
     <Compile Include="Security\SaslMechanismPlain.cs" />
     <Compile Include="Security\SaslMechanismScramBase.cs" />
     <Compile Include="Security\SaslMechanismScramSha1.cs" />
+    <Compile Include="Security\SaslMechanismScramSha256.cs" />
     <Compile Include="Security\SecureSocketOptions.cs" />
+    <Compile Include="Security\SslHandshakeException.cs" />
     <Compile Include="AccessControl.cs" />
     <Compile Include="AccessControlList.cs" />
     <Compile Include="AccessRight.cs" />
@@ -149,6 +160,7 @@
     <Compile Include="BodyPartText.cs" />
     <Compile Include="BodyPartVisitor.cs" />
     <Compile Include="CommandException.cs" />
+    <Compile Include="CompressedStream.cs" />
     <Compile Include="DeliveryStatusNotification.cs" />
     <Compile Include="DuplexStream.cs" />
     <Compile Include="Envelope.cs" />
@@ -178,7 +190,6 @@
     <Compile Include="MessageFlagsChangedEventArgs.cs" />
     <Compile Include="MessageLabelsChangedEventArgs.cs" />
     <Compile Include="MessageNotFoundException.cs" />
-    <Compile Include="MessagesArrivedEventArgs.cs" />
     <Compile Include="MessageSentEventArgs.cs" />
     <Compile Include="MessageSorter.cs" />
     <Compile Include="MessageSummary.cs" />
@@ -187,6 +198,11 @@
     <Compile Include="MessagesVanishedEventArgs.cs" />
     <Compile Include="MessageThread.cs" />
     <Compile Include="MessageThreader.cs" />
+    <Compile Include="Metadata.cs" />
+    <Compile Include="MetadataCollection.cs" />
+    <Compile Include="MetadataOptions.cs" />
+    <Compile Include="MetadataTag.cs" />
+    <Compile Include="ModSeqChangedEventArgs.cs" />
     <Compile Include="NullProtocolLogger.cs" />
     <Compile Include="ProgressStream.cs" />
     <Compile Include="ProtocolException.cs" />
@@ -197,6 +213,7 @@
     <Compile Include="StatusItems.cs" />
     <Compile Include="ThreadingAlgorithm.cs" />
     <Compile Include="UniqueId.cs" />
+    <Compile Include="UniqueIdMap.cs" />
     <Compile Include="UniqueIdRange.cs" />
     <Compile Include="UniqueIdSet.cs" />
     <Compile Include="UriExtensions.cs" />
@@ -214,7 +231,7 @@
     <MonoDevelop>
       <Properties>
         <Policies>
-          <DotNetNamingPolicy DirectoryNamespaceAssociation="PrefixedHierarchical" ResourceNamePolicy="FileFormatDefault" />
+          <DotNetNamingPolicy ResourceNamePolicy="FileFormatDefault" DirectoryNamespaceAssociation="PrefixedHierarchical" />
         </Policies>
       </Properties>
     </MonoDevelop>

@@ -1,10 +1,10 @@
-//
+﻿//
 // NtlmSettings.cs
 //
 // Author:
 //       Martin Baulig <martin.baulig@xamarin.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (http://www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (http://www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,7 @@ namespace MailKit.Security.Ntlm {
 	 */
 	static class NtlmSettings
 	{
-		static NtlmAuthLevel defaultAuthLevel = NtlmAuthLevel.LM_and_NTLM_and_try_NTLMv2_Session;
+		static NtlmAuthLevel defaultAuthLevel = NtlmAuthLevel.NTLMv2_only;
 
 		public static NtlmAuthLevel DefaultAuthLevel {
 			get { return defaultAuthLevel; }

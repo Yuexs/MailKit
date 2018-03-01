@@ -1,9 +1,9 @@
 ﻿//
 // ImapCapabilities.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -43,7 +43,7 @@ namespace MailKit.Net.Imap {
 		/// <summary>
 		/// The server does not support any additional extensions.
 		/// </summary>
-		None           = 0,
+		None             = 0,
 
 		/// <summary>
 		/// The server implements the core IMAP4 commands.
@@ -281,17 +281,27 @@ namespace MailKit.Net.Imap {
 		/// </summary>
 		UTF8Only         = 1L << 46,
 
+		/// <summary>
+		/// The server supports the <a href="https://tools.ietf.org/html/rfc7888">LITERAL-</a> extension.
+		/// </summary>
+		LiteralMinus     = 1L << 47,
+
+		/// <summary>
+		/// The server supports the <a href="https://tools.ietf.org/html/rfc7889">APPENDLIMIT</a> extension.
+		/// </summary>
+		AppendLimit      = 1L << 48,
+
 		#region GMail Extensions
 
 		/// <summary>
 		/// The server supports the <a href="https://developers.google.com/gmail/imap_extensions">XLIST</a> extension (GMail).
 		/// </summary>
-		XList            = 1L << 47,
+		XList            = 1L << 50,
 
 		/// <summary>
 		/// The server supports the <a href="https://developers.google.com/gmail/imap_extensions">X-GM-EXT1</a> extension (GMail).
 		/// </summary>
-		GMailExt1        = 1L << 48
+		GMailExt1        = 1L << 51
 
 		#endregion
 	}

@@ -1,9 +1,9 @@
-//
+﻿//
 // SmtpStatusCode.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -181,5 +181,10 @@ namespace MailKit.Net.Smtp {
 		/// The "transaction failed" status code.
 		/// </summary>
 		TransactionFailed = 554,
+
+		/// <summary>
+		/// The "mail from/rcpt to parameters not recognized or not implemented" status code.
+		/// </summary>
+		MailFromOrRcptToParametersNotRecognizedOrNotImplemented = 555,
 	}
 }

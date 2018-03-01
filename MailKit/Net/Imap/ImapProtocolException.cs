@@ -1,9 +1,9 @@
 ﻿//
 // ImapException.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -26,15 +26,16 @@
 
 using System;
 #if SERIALIZABLE
+using System.Security;
 using System.Runtime.Serialization;
 #endif
 
 namespace MailKit.Net.Imap {
 	/// <summary>
-	/// A IMAP protocol exception.
+	/// An IMAP protocol exception.
 	/// </summary>
 	/// <remarks>
-	/// The exception that is thrown when there is an error communicating with an IMAP server. A
+	/// The exception that is thrown when there is an error communicating with an IMAP server. An
 	/// <see cref="ImapProtocolException"/> is typically fatal and requires the <see cref="ImapClient"/>
 	/// to be reconnected.
 	/// </remarks>
@@ -52,6 +53,10 @@ namespace MailKit.Net.Imap {
 		/// </remarks>
 		/// <param name="info">The serialization info.</param>
 		/// <param name="context">The streaming context.</param>
+		/// <exception cref="System.ArgumentNullException">
+		/// <paramref name="info"/> is <c>null</c>.
+		/// </exception>
+		[SecuritySafeCritical]
 		protected ImapProtocolException (SerializationInfo info, StreamingContext context) : base (info, context)
 		{
 		}
@@ -102,4 +107,3 @@ namespace MailKit.Net.Imap {
 		}
 	}
 }
-

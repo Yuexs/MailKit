@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -39,15 +38,18 @@
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
     </Reference>
+    <Reference Include="BouncyCastle.Crypto">
+      <HintPath>..\packages\BouncyCastle.1.8.1\lib\BouncyCastle.Crypto.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\submodules\MimeKit\MimeKit\MimeKit.csproj">
+    <ProjectReference Include="..\submodules\MimeKit\MimeKit\MimeKit.Net45.csproj">
       <Project>{D5F54A4F-D84B-430F-9271-F7861E285B3E}</Project>
-      <Name>MimeKit</Name>
+      <Name>MimeKit.Net45</Name>
     </ProjectReference>
-    <ProjectReference Include="..\MailKit\MailKit.csproj">
+    <ProjectReference Include="..\MailKit\MailKit.Net45.csproj">
       <Project>{7264D469-A390-4C10-9C87-DAA37EDD3C1D}</Project>
-      <Name>MailKit</Name>
+      <Name>MailKit.Net45</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -59,12 +61,18 @@
     <Compile Include="Net\Pop3\Pop3ReplayStream.cs" />
     <Compile Include="Net\Smtp\SmtpClientTests.cs" />
     <Compile Include="Net\Smtp\SmtpReplayStream.cs" />
+    <Compile Include="Search\SearchQueryTests.cs" />
+    <Compile Include="Security\SaslMechanismTests.cs" />
+    <Compile Include="ArgumentExceptionTests.cs" />
+    <Compile Include="BodyPartTests.cs" />
+    <Compile Include="EnvelopeTests.cs" />
+    <Compile Include="ExceptionTests.cs" />
     <Compile Include="MessageSortingTests.cs" />
     <Compile Include="MessageThreadingTests.cs" />
-    <Compile Include="UriExtensionTests.cs" />
-    <Compile Include="Security\SaslMechanismTests.cs" />
-    <Compile Include="BodyPartTests.cs" />
+    <Compile Include="UniqueIdRangeTests.cs" />
     <Compile Include="UniqueIdSetTests.cs" />
+    <Compile Include="UniqueIdTests.cs" />
+    <Compile Include="UriExtensionTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Net\Imap\Resources\acl\authenticate.txt" />
@@ -74,6 +82,7 @@
     <EmbeddedResource Include="Net\Imap\Resources\acl\myrights.txt" />
     <EmbeddedResource Include="Net\Imap\Resources\common\capability-greeting.txt" />
     <EmbeddedResource Include="Net\Imap\Resources\common\getquota.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\common\getquota-no-root.txt" />
     <EmbeddedResource Include="Net\Imap\Resources\common\id.txt" />
     <EmbeddedResource Include="Net\Imap\Resources\common\message.0.msg" />
     <EmbeddedResource Include="Net\Imap\Resources\common\message.1.msg" />
@@ -125,6 +134,72 @@
     <EmbeddedResource Include="Net\Imap\Resources\common\message.7.msg" />
     <EmbeddedResource Include="Net\Imap\Resources\common\message.8.msg" />
     <EmbeddedResource Include="Net\Imap\Resources\common\message.9.msg" />
+    <EmbeddedResource Include="Net\Imap\Resources\common\select-inbox.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\common\setquota.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\authenticate.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\copy.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\enable-qresync.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\expunge.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\fetch1.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\fetch10.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\fetch11.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\fetch12.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\fetch2.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\fetch3.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\fetch4.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\fetch5.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\fetch6.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\fetch7.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\fetch8.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\fetch9.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\getbodypart.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\getbodypart2.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\getbodypartheaders.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\getbodypartheaders2.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\getmessageheaders.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\getmessageheaders2.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\getstream.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\getstream2.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\getstream3.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\getstream4.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\getstreams1.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\getstreams2.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\getstreams3.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\getstream-section.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\getstream-section2.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\greeting.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\list-inbox.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\list-personal.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\list-special-use.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\list-unittests.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\list-unittests-destination.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\list-unittests-messages.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\move.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\multiappend.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\namespace.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\optimized-search.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\search-all.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\search-changed-since.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\search-raw.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\search-uids.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\search-uids-options.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\select-unittests-destination.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\select-unittests-messages.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\select-unittests-messages-qresync.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\setflags-unchangedsince.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\sort-by-date.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\sort-by-strings.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\sort-raw.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\sort-reverse-arrival.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\sort-uids-options.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\status-unittests-destination.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\store-answered.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\store-deleted.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\store-deleted-custom.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\store-seen.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\thread-orderedsubject.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\thread-references.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\dovecot\uid-expunge.txt" />
     <EmbeddedResource Include="Net\Imap\Resources\gmail\add-flags.txt" />
     <EmbeddedResource Include="Net\Imap\Resources\gmail\append.1.txt" />
     <EmbeddedResource Include="Net\Imap\Resources\gmail\append.2.txt" />
@@ -178,6 +253,7 @@
     <EmbeddedResource Include="Net\Imap\Resources\gmail\append.50.txt" />
     <EmbeddedResource Include="Net\Imap\Resources\gmail\authenticate.txt" />
     <EmbeddedResource Include="Net\Imap\Resources\gmail\capability.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\gmail\capability+login.txt" />
     <EmbeddedResource Include="Net\Imap\Resources\gmail\count.examine.txt" />
     <EmbeddedResource Include="Net\Imap\Resources\gmail\count.noop.txt" />
     <EmbeddedResource Include="Net\Imap\Resources\gmail\examine-inbox.txt" />
@@ -202,8 +278,15 @@
     <EmbeddedResource Include="Net\Imap\Resources\gmail\fetch.42.txt" />
     <EmbeddedResource Include="Net\Imap\Resources\gmail\fetch.43.txt" />
     <EmbeddedResource Include="Net\Imap\Resources\gmail\fetch.50.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\gmail\fetch-previewtext7.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\gmail\fetch-previewtext8.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\gmail\fetch-previewtext9.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\gmail\fetch-previewtext10.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\gmail\fetch-previewtext11.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\gmail\fetch-previewtext12.txt" />
     <EmbeddedResource Include="Net\Imap\Resources\gmail\go-ahead.txt" />
     <EmbeddedResource Include="Net\Imap\Resources\gmail\greeting.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\gmail\list-all.txt" />
     <EmbeddedResource Include="Net\Imap\Resources\gmail\list-inbox.txt" />
     <EmbeddedResource Include="Net\Imap\Resources\gmail\list-personal.txt" />
     <EmbeddedResource Include="Net\Imap\Resources\gmail\list-unittests.txt" />
@@ -217,7 +300,22 @@
     <EmbeddedResource Include="Net\Imap\Resources\gmail\search-summary.txt" />
     <EmbeddedResource Include="Net\Imap\Resources\gmail\select-unittests.txt" />
     <EmbeddedResource Include="Net\Imap\Resources\gmail\set-flags.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\gmail\utf8accept.txt" />
     <EmbeddedResource Include="Net\Imap\Resources\gmail\xlist.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\metadata\authenticate.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\metadata\capability.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\metadata\getmetadata.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\metadata\getmetadata-multi.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\metadata\getmetadata-options.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\metadata\inbox-getmetadata.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\metadata\inbox-getmetadata-multi.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\metadata\inbox-getmetadata-options.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\metadata\inbox-setmetadata-maxsize.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\metadata\inbox-setmetadata-noprivate.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\metadata\inbox-setmetadata-toomany.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\metadata\setmetadata-maxsize.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\metadata\setmetadata-noprivate.txt" />
+    <EmbeddedResource Include="Net\Imap\Resources\metadata\setmetadata-toomany.txt" />
     <EmbeddedResource Include="Net\Pop3\Resources\comcast\capa1.txt" />
     <EmbeddedResource Include="Net\Pop3\Resources\comcast\capa2.txt" />
     <EmbeddedResource Include="Net\Pop3\Resources\comcast\err.txt" />
@@ -237,14 +335,40 @@
     <EmbeddedResource Include="Net\Pop3\Resources\gmail\auth.txt" />
     <EmbeddedResource Include="Net\Pop3\Resources\gmail\capa1.txt" />
     <EmbeddedResource Include="Net\Pop3\Resources\gmail\capa2.txt" />
+    <EmbeddedResource Include="Net\Pop3\Resources\gmail\dele.txt" />
+    <EmbeddedResource Include="Net\Pop3\Resources\gmail\dele123.txt" />
     <EmbeddedResource Include="Net\Pop3\Resources\gmail\greeting.txt" />
+    <EmbeddedResource Include="Net\Pop3\Resources\gmail\list.txt" />
+    <EmbeddedResource Include="Net\Pop3\Resources\gmail\list1.txt" />
+    <EmbeddedResource Include="Net\Pop3\Resources\gmail\list2.txt" />
+    <EmbeddedResource Include="Net\Pop3\Resources\gmail\list3.txt" />
+    <EmbeddedResource Include="Net\Pop3\Resources\gmail\noop.txt" />
     <EmbeddedResource Include="Net\Pop3\Resources\gmail\plus.txt" />
     <EmbeddedResource Include="Net\Pop3\Resources\gmail\quit.txt" />
     <EmbeddedResource Include="Net\Pop3\Resources\gmail\retr1.txt" />
     <EmbeddedResource Include="Net\Pop3\Resources\gmail\retr123.txt" />
+    <EmbeddedResource Include="Net\Pop3\Resources\gmail\rset.txt" />
     <EmbeddedResource Include="Net\Pop3\Resources\gmail\stat.txt" />
+    <EmbeddedResource Include="Net\Pop3\Resources\gmail\top.txt" />
+    <EmbeddedResource Include="Net\Pop3\Resources\gmail\top123.txt" />
+    <EmbeddedResource Include="Net\Pop3\Resources\gmail\uidl.txt" />
+    <EmbeddedResource Include="Net\Pop3\Resources\gmail\uidl1.txt" />
+    <EmbeddedResource Include="Net\Pop3\Resources\gmail\uidl2.txt" />
+    <EmbeddedResource Include="Net\Pop3\Resources\gmail\uidl3.txt" />
+    <EmbeddedResource Include="Net\Pop3\Resources\lang\auth.txt" />
+    <EmbeddedResource Include="Net\Pop3\Resources\lang\capa1.txt" />
+    <EmbeddedResource Include="Net\Pop3\Resources\lang\capa2.txt" />
+    <EmbeddedResource Include="Net\Pop3\Resources\lang\getlang.txt" />
+    <EmbeddedResource Include="Net\Pop3\Resources\lang\greeting.txt" />
+    <EmbeddedResource Include="Net\Pop3\Resources\lang\quit.txt" />
+    <EmbeddedResource Include="Net\Pop3\Resources\lang\setlang.txt" />
+    <EmbeddedResource Include="Net\Pop3\Resources\lang\stat.txt" />
+    <EmbeddedResource Include="Net\Pop3\Resources\lang\utf8.txt" />
     <EmbeddedResource Include="Net\Smtp\Resources\auth-required.txt" />
     <EmbeddedResource Include="Net\Smtp\Resources\auth-successful.txt" />
+    <EmbeddedResource Include="Net\Smtp\Resources\comcast-auth-login-password.txt" />
+    <EmbeddedResource Include="Net\Smtp\Resources\comcast-auth-login-username.txt" />
+    <EmbeddedResource Include="Net\Smtp\Resources\comcast-auth-login.txt" />
     <EmbeddedResource Include="Net\Smtp\Resources\comcast-auth-plain.txt" />
     <EmbeddedResource Include="Net\Smtp\Resources\comcast-data.txt" />
     <EmbeddedResource Include="Net\Smtp\Resources\comcast-data-done.txt" />
@@ -253,11 +377,14 @@
     <EmbeddedResource Include="Net\Smtp\Resources\comcast-ehlo+pipelining.txt" />
     <EmbeddedResource Include="Net\Smtp\Resources\comcast-greeting.txt" />
     <EmbeddedResource Include="Net\Smtp\Resources\comcast-mail-from.txt" />
+    <EmbeddedResource Include="Net\Smtp\Resources\comcast-noop.txt" />
     <EmbeddedResource Include="Net\Smtp\Resources\comcast-quit.txt" />
     <EmbeddedResource Include="Net\Smtp\Resources\comcast-rcpt-to.txt" />
     <EmbeddedResource Include="Net\Smtp\Resources\comcast-rset.txt" />
     <EmbeddedResource Include="Net\Smtp\Resources\mailbox-unavailable.txt" />
     <EmbeddedResource Include="Net\Smtp\Resources\pipelined-mail-from-rcpt-to.txt" />
+    <EmbeddedResource Include="Net\Smtp\Resources\rfc0821-expn.txt" />
+    <EmbeddedResource Include="Net\Smtp\Resources\rfc0821-vrfy.txt" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Net\" />
@@ -274,13 +401,17 @@
     <Folder Include="Net\Smtp\Resources\" />
     <Folder Include="Security\" />
     <Folder Include="Net\Imap\Resources\acl\" />
+    <Folder Include="Net\Imap\Resources\metadata\" />
+    <Folder Include="Net\Imap\Resources\dovecot\" />
+    <Folder Include="Net\Pop3\Resources\lang\" />
+    <Folder Include="Search\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
     <MonoDevelop>
       <Properties>
         <Policies>
-          <DotNetNamingPolicy DirectoryNamespaceAssociation="PrefixedHierarchical" ResourceNamePolicy="FileFormatDefault" />
+          <DotNetNamingPolicy ResourceNamePolicy="FileFormatDefault" DirectoryNamespaceAssociation="PrefixedHierarchical" />
         </Policies>
       </Properties>
     </MonoDevelop>

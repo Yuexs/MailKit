@@ -1,9 +1,9 @@
 ﻿//
 // FetchFlags.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -45,87 +45,104 @@ namespace MailKit {
 		None           = 0,
 
 		/// <summary>
-		/// Fetch the <see cref="MessageSummary.Body"/>.
+		/// <para>Fetch the <see cref="IMessageSummary.Body"/>.</para>
+		/// <note type="note">Unlike <see cref="BodyStructure"/>, <c>Body</c> will not populate the
+		/// <see cref="BodyPart.ContentType"/> parameters nor will it populate the
+		/// <see cref="BodyPartBasic.ContentDisposition"/>, <see cref="BodyPartBasic.ContentLanguage"/>
+		/// or <see cref="BodyPartBasic.ContentLocation"/> properties of each <see cref="BodyPartBasic"/>
+		/// body part. This makes <c>Body</c> far less useful than <c>BodyStructure</c> especially when
+		/// it is desirable to determine whether or not a body part is an attachment.</note>
 		/// </summary>
 		Body           = 1 << 0,
 
 		/// <summary>
-		/// Fetch the <see cref="MessageSummary.Body"/> (but with more details than <see cref="Body"/>).
+		/// <para>Fetch the <see cref="IMessageSummary.Body"/> (but with more details than <see cref="Body"/>).</para>
+		/// <note type="note">Unlike <see cref="Body"/>, <c>BodyStructure</c> will also populate the
+		/// <see cref="BodyPart.ContentType"/> parameters as well as the
+		/// <see cref="BodyPartBasic.ContentDisposition"/>, <see cref="BodyPartBasic.ContentLanguage"/>
+		/// and <see cref="BodyPartBasic.ContentLocation"/> properties of each <see cref="BodyPartBasic"/>
+		/// body part. The <c>Content-Disposition</c> information is especially important when trying to
+		/// determine whether or not a body part is an attachment, for example.</note>
 		/// </summary>
 		BodyStructure  = 1 << 2,
 
 		/// <summary>
-		/// Fetch the <see cref="MessageSummary.Envelope"/>.
+		/// Fetch the <see cref="IMessageSummary.Envelope"/>.
 		/// </summary>
 		Envelope       = 1 << 3,
 
 		/// <summary>
-		/// Fetch the <see cref="MessageSummary.Flags"/>.
+		/// Fetch the <see cref="IMessageSummary.Flags"/>.
 		/// </summary>
 		Flags          = 1 << 4,
 
 		/// <summary>
-		/// Fetch the <see cref="MessageSummary.InternalDate"/>.
+		/// Fetch the <see cref="IMessageSummary.InternalDate"/>.
 		/// </summary>
 		InternalDate   = 1 << 5,
 
 		/// <summary>
-		/// Fetch the <see cref="MessageSummary.MessageSize"/>.
+		/// Fetch the <see cref="IMessageSummary.Size"/>.
 		/// </summary>
-		MessageSize    = 1 << 6,
+		Size           = 1 << 6,
 
 		/// <summary>
-		/// Fetch the <see cref="MessageSummary.ModSeq"/>.
+		/// Fetch the <see cref="IMessageSummary.ModSeq"/>.
 		/// </summary>
 		ModSeq         = 1 << 7,
 
 		/// <summary>
-		/// Fetch the <see cref="MessageSummary.References"/>.
+		/// Fetch the <see cref="IMessageSummary.References"/>.
 		/// </summary>
 		References     = 1 << 8,
 
 		/// <summary>
-		/// Fetch the <see cref="MessageSummary.UniqueId"/>.
+		/// Fetch the <see cref="IMessageSummary.UniqueId"/>.
 		/// </summary>
 		UniqueId       = 1 << 9,
 
 		#region GMail extension items
 
 		/// <summary>
-		/// Fetch the <see cref="MessageSummary.GMailMessageId"/>.
+		/// Fetch the <see cref="IMessageSummary.GMailMessageId"/>.
 		/// </summary>
 		GMailMessageId = 1 << 10,
 
 		/// <summary>
-		/// Fetch the <see cref="MessageSummary.GMailThreadId"/>.
+		/// Fetch the <see cref="IMessageSummary.GMailThreadId"/>.
 		/// </summary>
 		GMailThreadId  = 1 << 11,
 
 		/// <summary>
-		/// Fetch the <see cref="MessageSummary.GMailLabels"/>.
+		/// Fetch the <see cref="IMessageSummary.GMailLabels"/>.
 		/// </summary>
 		GMailLabels    = 1 << 12,
 
 		#endregion
 
+		/// <summary>
+		/// Fetch the <see cref="IMessageSummary.PreviewText"/>.
+		/// </summary>
+		PreviewText    = 1 << 13,
+
 		#region Macros
 
 		/// <summary>
 		/// A macro for <see cref="Envelope"/>, <see cref="Flags"/>, <see cref="InternalDate"/>,
-		/// and <see cref="MessageSize"/>.
+		/// and <see cref="Size"/>.
 		/// </summary>
-		All           = Envelope | Flags | InternalDate | MessageSize,
+		All           = Envelope | Flags | InternalDate | Size,
 
 		/// <summary>
-		/// A macro for <see cref="Flags"/>, <see cref="InternalDate"/>, and <see cref="MessageSize"/>.
+		/// A macro for <see cref="Flags"/>, <see cref="InternalDate"/>, and <see cref="Size"/>.
 		/// </summary>
-		Fast          = Flags | InternalDate | MessageSize,
+		Fast          = Flags | InternalDate | Size,
 
 		/// <summary>
 		/// A macro for <see cref="Body"/>, <see cref="Envelope"/>, <see cref="Flags"/>,
-		/// <see cref="InternalDate"/>, and <see cref="MessageSize"/>.
+		/// <see cref="InternalDate"/>, and <see cref="Size"/>.
 		/// </summary>
-		Full          = Body | Envelope | Flags| InternalDate | MessageSize,
+		Full          = Body | Envelope | Flags| InternalDate | Size,
 
 		#endregion
 	}

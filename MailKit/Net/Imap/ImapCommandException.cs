@@ -1,9 +1,9 @@
-//
+﻿//
 // ImapCommandException.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,9 @@
 //
 
 using System;
+
 #if SERIALIZABLE
+using System.Security;
 using System.Runtime.Serialization;
 #endif
 
@@ -51,14 +53,14 @@ namespace MailKit.Net.Imap {
 		/// </remarks>
 		/// <param name="info">The serialization info.</param>
 		/// <param name="context">The streaming context.</param>
+		/// <exception cref="System.ArgumentNullException">
+		/// <paramref name="info"/> is <c>null</c>.
+		/// </exception>
+		[SecuritySafeCritical]
 		protected ImapCommandException (SerializationInfo info, StreamingContext context) : base (info, context)
 		{
-			var value = info.GetString ("Response");
-			ImapCommandResponse response;
-
-			Enum.TryParse (value, out response);
-
-			Response = response;
+			Response = (ImapCommandResponse) info.GetValue ("Response", typeof (ImapCommandResponse));
+			ResponseText = info.GetString ("ResponseText");
 		}
 #endif
 
@@ -77,8 +79,8 @@ namespace MailKit.Net.Imap {
 			string message, reason = null;
 
 			if (string.IsNullOrEmpty (ic.ResponseText)) {
-				for (int i = 0; i < ic.RespCodes.Count; i++) {
-					if (ic.RespCodes[i].IsError) {
+				for (int i = ic.RespCodes.Count - 1; i >= 0; i--) {
+					if (ic.RespCodes[i].IsError && !string.IsNullOrEmpty (ic.RespCodes[i].Message)) {
 						reason = ic.RespCodes[i].Message;
 						break;
 					}
@@ -92,7 +94,7 @@ namespace MailKit.Net.Imap {
 			else
 				message = string.Format ("The IMAP server replied to the '{0}' command with a '{1}' response.", command, result);
 
-			return ic.Exception != null ? new ImapCommandException (ic.Response, message, ic.Exception) : new ImapCommandException (ic.Response, message);
+			return ic.Exception != null ? new ImapCommandException (ic.Response, reason, message, ic.Exception) : new ImapCommandException (ic.Response, reason, message);
 		}
 
 		/// <summary>
@@ -103,9 +105,11 @@ namespace MailKit.Net.Imap {
 		/// </remarks>
 		/// <param name="response">The IMAP command response.</param>
 		/// <param name="message">The error message.</param>
+		/// <param name="responseText">The human-readable response text.</param>
 		/// <param name="innerException">The inner exception.</param>
-		public ImapCommandException (ImapCommandResponse response, string message, Exception innerException) : base (message, innerException)
+		public ImapCommandException (ImapCommandResponse response, string responseText, string message, Exception innerException) : base (message, innerException)
 		{
+			ResponseText = responseText;
 			Response = response;
 		}
 
@@ -116,9 +120,11 @@ namespace MailKit.Net.Imap {
 		/// Creates a new <see cref="ImapCommandException"/>.
 		/// </remarks>
 		/// <param name="response">The IMAP command response.</param>
+		/// <param name="responseText">The human-readable response text.</param>
 		/// <param name="message">The error message.</param>
-		public ImapCommandException (ImapCommandResponse response, string message) : base (message)
+		public ImapCommandException (ImapCommandResponse response, string responseText, string message) : base (message)
 		{
+			ResponseText = responseText;
 			Response = response;
 		}
 
@@ -129,8 +135,10 @@ namespace MailKit.Net.Imap {
 		/// Creates a new <see cref="ImapCommandException"/>.
 		/// </remarks>
 		/// <param name="response">The IMAP command response.</param>
-		public ImapCommandException (ImapCommandResponse response)
+		/// <param name="responseText">The human-readable response text.</param>
+		public ImapCommandException (ImapCommandResponse response, string responseText)
 		{
+			ResponseText = responseText;
 			Response = response;
 		}
 
@@ -142,6 +150,17 @@ namespace MailKit.Net.Imap {
 		/// </remarks>
 		/// <value>The IMAP command response.</value>
 		public ImapCommandResponse Response {
+			get; private set;
+		}
+
+		/// <summary>
+		/// Gets the human-readable IMAP command response text.
+		/// </summary>
+		/// <remarks>
+		/// Gets the human-readable IMAP command response text.
+		/// </remarks>
+		/// <value>The response text.</value>
+		public string ResponseText {
 			get; private set;
 		}
 
@@ -158,14 +177,13 @@ namespace MailKit.Net.Imap {
 		/// <exception cref="System.ArgumentNullException">
 		/// <paramref name="info"/> is <c>null</c>.
 		/// </exception>
+		[SecurityCritical]
 		public override void GetObjectData (SerializationInfo info, StreamingContext context)
 		{
-			if (info == null)
-				throw new ArgumentNullException ("info");
-
-			info.AddValue ("Response", Response);
-
 			base.GetObjectData (info, context);
+
+			info.AddValue ("Response", Response, typeof (ImapCommandResponse));
+			info.AddValue ("ResponseText", ResponseText);
 		}
 #endif
 	}

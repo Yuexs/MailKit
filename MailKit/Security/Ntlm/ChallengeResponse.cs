@@ -1,4 +1,4 @@
-//
+﻿//
 // Mono.Security.Protocol.Ntlm.ChallengeResponse
 //	Implements Challenge Response for NTLM v1
 //
@@ -7,7 +7,7 @@
 //
 // Copyright (c) 2003 Motus Technologies Inc. (http://www.motus.com)
 // Copyright (c) 2004 Novell (http://www.novell.com)
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // References
 // a.	NTLM Authentication Scheme for HTTP, Ronald Tschalär
@@ -76,7 +76,7 @@ namespace MailKit.Security.Ntlm {
 		void CheckDisposed ()
 		{
 			if (disposed)
-				throw new ObjectDisposedException ("ChallengeResponse");
+				throw new ObjectDisposedException (nameof (ChallengeResponse));
 		}
 
 		public string Password {
@@ -118,8 +118,6 @@ namespace MailKit.Security.Ntlm {
 						Array.Clear (data, 0, data.Length);
 						Array.Clear (hash, 0, hash.Length);
 					}
-
-					des.Clear ();
 				}
 			}
 		}
@@ -128,7 +126,7 @@ namespace MailKit.Security.Ntlm {
 			get { return null; }
 			set {
 				if (value == null)
-					throw new ArgumentNullException ("value");
+					throw new ArgumentNullException (nameof (value));
 
 				CheckDisposed ();
 

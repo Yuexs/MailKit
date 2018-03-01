@@ -1,9 +1,9 @@
 ﻿//
 // SearchOptions.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -36,23 +36,34 @@ namespace MailKit.Search {
 	[Flags]
 	public enum SearchOptions {
 		/// <summary>
+		/// No options specified.
+		/// </summary>
+		None      = 0,
+
+		/// <summary>
 		/// Returns all of the matching unique identifiers.
 		/// </summary>
-		All   = 0,
+		All       = 1 << 0,
 
 		/// <summary>
 		/// Returns the number of messages that match the search query.
 		/// </summary>
-		Count = 1 << 0,
+		Count     = 1 << 1,
 
 		/// <summary>
 		/// Returns the minimum unique identifier of the messages that match the search query.
 		/// </summary>
-		Min   = 1 << 1,
+		Min       = 1 << 2,
 
 		/// <summary>
 		/// Returns the maximum unique identifier of the messages that match the search query.
 		/// </summary>
-		Max   = 1 << 2
+		Max       = 1 << 3,
+
+		/// <summary>
+		/// Returns the relevancy scores of the messages that match the query. Can only be used
+		/// when using FUZZY search.
+		/// </summary>
+		Relevancy = 1 << 4
 	}
 }

@@ -1,9 +1,9 @@
 ﻿//
 // BodyPartText.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,9 @@ namespace MailKit {
 	/// <remarks>
 	/// Represents any body part with a media type of "text".
 	/// </remarks>
+	/// <example>
+	/// <code language="c#" source="Examples\ImapExamples.cs" region="DownloadBodyParts"/>
+	/// </example>
 	public class BodyPartText : BodyPartBasic
 	{
 		/// <summary>
@@ -54,7 +57,7 @@ namespace MailKit {
 		/// </remarks>
 		/// <value><c>true</c> if the text is html; otherwise, <c>false</c>.</value>
 		public bool IsPlain {
-			get { return ContentType.Matches ("text", "plain"); }
+			get { return ContentType.IsMimeType ("text", "plain"); }
 		}
 
 		/// <summary>
@@ -65,7 +68,7 @@ namespace MailKit {
 		/// </remarks>
 		/// <value><c>true</c> if the text is html; otherwise, <c>false</c>.</value>
 		public bool IsHtml {
-			get { return ContentType.Matches ("text", "html"); }
+			get { return ContentType.IsMimeType ("text", "html"); }
 		}
 
 		/// <summary>
@@ -97,7 +100,7 @@ namespace MailKit {
 		public override void Accept (BodyPartVisitor visitor)
 		{
 			if (visitor == null)
-				throw new ArgumentNullException ("visitor");
+				throw new ArgumentNullException (nameof (visitor));
 
 			visitor.VisitBodyPartText (this);
 		}

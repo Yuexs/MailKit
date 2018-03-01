@@ -1,9 +1,9 @@
 ﻿//
 // IMessageSummary.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -68,11 +68,14 @@ namespace MailKit {
 		/// Gets the text body part of the message if it exists.
 		/// </summary>
 		/// <remarks>
-		/// <para>Gets the text/plain body part of the message.</para>
+		/// <para>Gets the <c>text/plain</c> body part of the message.</para>
 		/// <para>In order for this to work properly, it is necessary to include
 		/// <see cref="MessageSummaryItems.BodyStructure"/> when fetching
 		/// summary information from a <see cref="IMailFolder"/>.</para>
 		/// </remarks>
+		/// <example>
+		/// <code language="c#" source="Examples\ImapExamples.cs" region="DownloadBodyParts"/>
+		/// </example>
 		/// <value>The text body if it exists; otherwise, <c>null</c>.</value>
 		BodyPartText TextBody { get; }
 
@@ -80,7 +83,7 @@ namespace MailKit {
 		/// Gets the html body part of the message if it exists.
 		/// </summary>
 		/// <remarks>
-		/// <para>Gets the text/html body part of the message.</para>
+		/// <para>Gets the <c>text/html</c> body part of the message.</para>
 		/// <para>In order for this to work properly, it is necessary to include
 		/// <see cref="MessageSummaryItems.BodyStructure"/> when fetching
 		/// summary information from a <see cref="IMailFolder"/>.</para>
@@ -107,14 +110,30 @@ namespace MailKit {
 		/// </summary>
 		/// <remarks>
 		/// <para>Traverses over the <see cref="Body"/>, enumerating all of the
-		/// <see cref="BodyPartBasic"/> objects that have a Content-Disposition
+		/// <see cref="BodyPartBasic"/> objects that have a <c>Content-Disposition</c>
 		/// header set to <c>"attachment"</c>.</para>
 		/// <para>In order for this to work properly, it is necessary to include
 		/// <see cref="MessageSummaryItems.BodyStructure"/> when fetching
 		/// summary information from a <see cref="IMailFolder"/>.</para>
 		/// </remarks>
+		/// <example>
+		/// <code language="c#" source="Examples\ImapExamples.cs" region="DownloadBodyParts"/>
+		/// </example>
 		/// <value>The attachments.</value>
 		IEnumerable<BodyPartBasic> Attachments { get; }
+
+		/// <summary>
+		/// Gets the preview text of the message.
+		/// </summary>
+		/// <remarks>
+		/// <para>The preview text is a short snippet of the beginning of the message
+		/// text, typically shown in a mail client's message list UI.</para>
+		/// <para>In order for this to work properly, it is necessary to include
+		/// <see cref="MessageSummaryItems.PreviewText"/> when fetching
+		/// summary information from a <see cref="IMailFolder"/>.</para>
+		/// </remarks>
+		/// <value>The preview text.</value>
+		string PreviewText { get; }
 
 		/// <summary>
 		/// Gets the envelope of the message, if available.
@@ -136,7 +155,7 @@ namespace MailKit {
 		/// Gets the normalized subject.
 		/// </summary>
 		/// <remarks>
-		/// <para>A normalized Subject header value where prefixes such as "Re:", "Re[#]:", etc have been pruned.</para>
+		/// <para>A normalized <c>Subject</c> header value where prefixes such as <c>"Re:"</c>, <c>"Re[#]:"</c> and <c>"FWD:"</c> have been pruned.</para>
 		/// <para>This property is typically used for threading messages by subject.</para>
 		/// </remarks>
 		/// <value>The normalized subject.</value>
@@ -156,7 +175,7 @@ namespace MailKit {
 		/// Gets whether or not the message is a reply.
 		/// </summary>
 		/// <remarks>
-		/// This value should be based on whether the message subject contained any "Re:" or "Fwd:" prefixes.
+		/// This value should be based on whether the message subject contained any <c>"Re:"</c>, <c>"Re[#]:"</c> or <c>"FWD:"</c> prefixes.
 		/// </remarks>
 		/// <value><c>true</c> if the message is a reply; otherwise, <c>false</c>.</value>
 		bool IsReply { get; }
@@ -198,10 +217,10 @@ namespace MailKit {
 		HeaderList Headers { get; }
 
 		/// <summary>
-		/// Gets the internal date of the message (i.e. the "received" date), if available.
+		/// Gets the internal date of the message, if available.
 		/// </summary>
 		/// <remarks>
-		/// <para>Gets the internal date of the message (i.e. the "received" date), if available.</para>
+		/// <para>Gets the internal date of the message (often the same date as found in the <c>Received</c> header), if available.</para>
 		/// <para>This property will only be set if the
 		/// <see cref="MessageSummaryItems.InternalDate"/> flag is passed to
 		/// <see cref="IMailFolder.Fetch(System.Collections.Generic.IList&lt;UniqueId&gt;,MessageSummaryItems,System.Threading.CancellationToken)"/>.</para>
@@ -215,7 +234,7 @@ namespace MailKit {
 		/// <remarks>
 		/// <para>Gets the size of the message, in bytes, if available.</para>
 		/// <para>This property will only be set if the
-		/// <see cref="MessageSummaryItems.MessageSize"/> flag is passed to
+		/// <see cref="MessageSummaryItems.Size"/> flag is passed to
 		/// <see cref="IMailFolder.Fetch(System.Collections.Generic.IList&lt;UniqueId&gt;,MessageSummaryItems,System.Threading.CancellationToken)"/>.</para>
 		/// </remarks>
 		/// <value>The size of the message.</value>

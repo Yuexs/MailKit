@@ -1,9 +1,9 @@
 ﻿//
 // Pop3CommandException.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@
 
 using System;
 #if SERIALIZABLE
+using System.Security;
 using System.Runtime.Serialization;
 #endif
 
@@ -54,6 +55,10 @@ namespace MailKit.Net.Pop3 {
 		/// </remarks>
 		/// <param name="info">The serialization info.</param>
 		/// <param name="context">The streaming context.</param>
+		/// <exception cref="System.ArgumentNullException">
+		/// <paramref name="info"/> is <c>null</c>.
+		/// </exception>
+		[SecuritySafeCritical]
 		protected Pop3CommandException (SerializationInfo info, StreamingContext context) : base (info, context)
 		{
 			StatusText = info.GetString ("StatusText");
@@ -88,7 +93,7 @@ namespace MailKit.Net.Pop3 {
 		public Pop3CommandException (string message, string statusText, Exception innerException) : base (message, innerException)
 		{
 			if (statusText == null)
-				throw new ArgumentNullException ("statusText");
+				throw new ArgumentNullException (nameof (statusText));
 
 			StatusText = statusText;
 		}
@@ -118,6 +123,9 @@ namespace MailKit.Net.Pop3 {
 		/// </exception>
 		public Pop3CommandException (string message, string statusText) : base (message)
 		{
+			if (statusText == null)
+				throw new ArgumentNullException (nameof (statusText));
+
 			StatusText = statusText;
 		}
 
@@ -145,5 +153,27 @@ namespace MailKit.Net.Pop3 {
 		public string StatusText {
 			get; private set;
 		}
+
+#if SERIALIZABLE
+		/// <summary>
+		/// When overridden in a derived class, sets the <see cref="System.Runtime.Serialization.SerializationInfo"/>
+		/// with information about the exception.
+		/// </summary>
+		/// <remarks>
+		/// Serializes the state of the <see cref="FolderNotFoundException"/>.
+		/// </remarks>
+		/// <param name="info">The serialization info.</param>
+		/// <param name="context">The streaming context.</param>
+		/// <exception cref="System.ArgumentNullException">
+		/// <paramref name="info"/> is <c>null</c>.
+		/// </exception>
+		[SecurityCritical]
+		public override void GetObjectData (SerializationInfo info, StreamingContext context)
+		{
+			base.GetObjectData (info, context);
+
+			info.AddValue ("StatusText", StatusText);
+		}
+#endif
 	}
 }

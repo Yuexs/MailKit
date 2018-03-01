@@ -1,9 +1,9 @@
 ﻿//
 // UniqueIdSet.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,10 @@
 using System;
 using System.Text;
 using System.Collections;
+using System.Globalization;
 using System.Collections.Generic;
+
+using MailKit.Search;
 
 namespace MailKit {
 	/// <summary>
@@ -39,8 +42,76 @@ namespace MailKit {
 	/// </remarks>
 	public class UniqueIdSet : IList<UniqueId>
 	{
-		readonly List<UniqueIdRange> ranges;
-		bool sorted;
+		struct Range
+		{
+			public uint Start;
+			public uint End;
+
+			public Range (uint start, uint end)
+			{
+				Start = start;
+				End = end;
+			}
+
+			public int Count {
+				get { return (int) (Start <= End ? End - Start : Start - End) + 1; }
+			}
+
+			public bool Contains (uint uid)
+			{
+				if (Start <= End)
+					return uid >= Start && uid <= End;
+
+				return uid <= Start && uid >= End;
+			}
+
+			public int IndexOf (uint uid)
+			{
+				if (Start <= End) {
+					if (uid < Start || uid > End)
+						return -1;
+
+					return (int) (uid - Start);
+				}
+
+				if (uid > Start || uid < End)
+					return -1;
+
+				return (int) (Start - uid);
+			}
+
+			public uint this [int index] {
+				get {
+					return Start <= End ? Start + (uint) index : Start - (uint) index;
+				}
+			}
+
+			public IEnumerator<uint> GetEnumerator ()
+			{
+				if (Start <= End) {
+					for (uint uid = Start; uid <= End; uid++)
+						yield return uid;
+				} else {
+					for (uint uid = Start; uid >= End; uid--)
+						yield return uid;
+				}
+
+				yield break;
+			}
+
+			public override string ToString ()
+			{
+				if (Start == End)
+					return Start.ToString (CultureInfo.InvariantCulture);
+
+				if (Start <= End && End == uint.MaxValue)
+					return string.Format (CultureInfo.InvariantCulture, "{0}:*", Start);
+
+				return string.Format (CultureInfo.InvariantCulture, "{0}:{1}", Start, End);
+			}
+		}
+
+		readonly List<Range> ranges = new List<Range> ();
 		long count;
 
 		/// <summary>
@@ -49,11 +120,38 @@ namespace MailKit {
 		/// <remarks>
 		/// Creates a new unique identifier set.
 		/// </remarks>
-		/// <param name="sort"><c>true</c> if unique identifiers should be sorted; otherwise, <c>false</c>.</param>
-		public UniqueIdSet (bool sort = false)
+		/// <param name="validity">The uid validity.</param>
+		/// <param name="order">The sorting order to use for the unique identifiers.</param>
+		/// <exception cref="System.ArgumentOutOfRangeException">
+		/// <paramref name="order"/> is invalid.
+		/// </exception>
+		public UniqueIdSet (uint validity, SortOrder order = SortOrder.None)
 		{
-			ranges = new List<UniqueIdRange> ();
-			sorted = sort;
+			switch (order) {
+			case SortOrder.Descending:
+			case SortOrder.Ascending:
+			case SortOrder.None:
+				break;
+			default:
+				throw new ArgumentOutOfRangeException (nameof (order));
+			}
+
+			Validity = validity;
+			SortOrder = order;
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="MailKit.UniqueIdSet"/> class.
+		/// </summary>
+		/// <remarks>
+		/// Creates a new unique identifier set.
+		/// </remarks>
+		/// <param name="order">The sorting order to use for the unique identifiers.</param>
+		/// <exception cref="System.ArgumentOutOfRangeException">
+		/// <paramref name="order"/> is invalid.
+		/// </exception>
+		public UniqueIdSet (SortOrder order = SortOrder.None) : this (0, order)
+		{
 		}
 
 		/// <summary>
@@ -63,14 +161,36 @@ namespace MailKit {
 		/// Creates a new set of unique identifier set containing the specified uids.
 		/// </remarks>
 		/// <param name="uids">An initial set of unique ids.</param>
-		/// <param name="sort"><c>true</c> if unique identifiers should be sorted; otherwise, <c>false</c>.</param>
-		public UniqueIdSet (IEnumerable<UniqueId> uids, bool sort = false)
+		/// <param name="order">The sorting order to use for the unique identifiers.</param>
+		/// <exception cref="System.ArgumentOutOfRangeException">
+		/// <paramref name="order"/> is invalid.
+		/// </exception>
+		public UniqueIdSet (IEnumerable<UniqueId> uids, SortOrder order = SortOrder.None) : this (order)
 		{
-			ranges = new List<UniqueIdRange> ();
-			sorted = sort;
-
 			foreach (var uid in uids)
 				Add (uid);
+		}
+
+		/// <summary>
+		/// Gets the sort order of the unique identifiers.
+		/// </summary>
+		/// <remarks>
+		/// Gets the sort order of the unique identifiers.
+		/// </remarks>
+		/// <value>The sort order.</value>
+		public SortOrder SortOrder {
+			get; private set;
+		}
+
+		/// <summary>
+		/// Gets the validity, if non-zero.
+		/// </summary>
+		/// <remarks>
+		/// Gets the UidValidity of the containing folder.
+		/// </remarks>
+		/// <value>The UidValidity of the containing folder.</value>
+		public uint Validity {
+			get; private set;
 		}
 
 		#region ICollection implementation
@@ -97,7 +217,7 @@ namespace MailKit {
 			get { return false; }
 		}
 
-		int BinarySearch (UniqueId uid)
+		int BinarySearch (uint uid)
 		{
 			int min = 0, max = ranges.Count;
 
@@ -107,22 +227,35 @@ namespace MailKit {
 			do {
 				int i = min + ((max - min) / 2);
 
-				if (uid >= ranges[i].Start) {
-					if (uid <= ranges[i].End)
-						return i;
+				if (SortOrder == SortOrder.Ascending) {
+					// sorted ascending: 1:3,5:7,9
+					if (uid >= ranges[i].Start) {
+						if (uid <= ranges[i].End)
+							return i;
 
-					min = i + 1;
+						min = i + 1;
+					} else {
+						max = i;
+					}
 				} else {
-					max = i;
+					// sorted descending: 9,7:5,3:1
+					if (uid >= ranges[i].End) {
+						if (uid <= ranges[i].Start)
+							return i;
+
+						max = i;
+					} else {
+						min = i + 1;
+					}
 				}
 			} while (min < max);
 
 			return -1;
 		}
 
-		int IndexOfRange (UniqueId uid)
+		int IndexOfRange (uint uid)
 		{
-			if (sorted)
+			if (SortOrder != SortOrder.None)
 				return BinarySearch (uid);
 
 			for (int i = 0; i < ranges.Count; i++) {
@@ -133,16 +266,10 @@ namespace MailKit {
 			return -1;
 		}
 
-		void BinaryInsert (UniqueId uid)
+		void BinaryInsertAscending (uint uid)
 		{
 			int min = 0, max = ranges.Count;
 			int i;
-
-			if (max == 0) {
-				ranges.Add (new UniqueIdRange (uid, uid));
-				count++;
-				return;
-			}
 
 			do {
 				i = min + ((max - min) / 2);
@@ -151,16 +278,16 @@ namespace MailKit {
 					if (uid <= ranges[i].End)
 						return;
 
-					if (uid.Id == ranges[i].End.Id + 1) {
-						if (i + 1 < ranges.Count && uid.Id + 1 >= ranges[i + 1].Start.Id) {
+					if (uid == ranges[i].End + 1) {
+						if (i + 1 < ranges.Count && uid + 1 >= ranges[i + 1].Start) {
 							// merge the 2 ranges together
-							ranges[i].End = ranges[i + 1].End;
+							ranges[i] = new Range (ranges[i].Start, ranges[i + 1].End);
 							ranges.RemoveAt (i + 1);
 							count++;
 							return;
 						}
 
-						ranges[i].End = uid;
+						ranges[i] = new Range (ranges[i].Start, uid);
 						count++;
 						return;
 					}
@@ -168,16 +295,16 @@ namespace MailKit {
 					min = i + 1;
 					i = min;
 				} else {
-					if (uid.Id == ranges[i].Start.Id - 1) {
-						if (i > 0 && uid.Id - 1 <= ranges[i - 1].End.Id) {
+					if (uid == ranges[i].Start - 1) {
+						if (i > 0 && uid - 1 <= ranges[i - 1].End) {
 							// merge the 2 ranges together
-							ranges[i - 1].End = ranges[i].End;
+							ranges[i - 1] = new Range (ranges[i - 1].Start, ranges[i].End);
 							ranges.RemoveAt (i);
 							count++;
 							return;
 						}
 
-						ranges[i].Start = uid;
+						ranges[i] = new Range (uid, ranges[i].End);
 						count++;
 						return;
 					}
@@ -186,7 +313,7 @@ namespace MailKit {
 				}
 			} while (min < max);
 
-			var range = new UniqueIdRange (uid, uid);
+			var range = new Range (uid, uid);
 
 			if (i < ranges.Count)
 				ranges.Insert (i, range);
@@ -196,35 +323,93 @@ namespace MailKit {
 			count++;
 		}
 
-		void Append (UniqueId uid)
+		void BinaryInsertDescending (uint uid)
 		{
-			if (Contains (uid))
+			int min = 0, max = ranges.Count;
+			int i;
+
+			do {
+				i = min + ((max - min) / 2);
+
+				if (uid <= ranges[i].Start) {
+					if (uid >= ranges[i].End)
+						return;
+
+					if (uid == ranges[i].End - 1) {
+						if (i + 1 < ranges.Count && uid - 1 <= ranges[i + 1].Start) {
+							// merge the 2 ranges together
+							ranges[i] = new Range (ranges[i].Start, ranges[i + 1].End);
+							ranges.RemoveAt (i + 1);
+							count++;
+							return;
+						}
+
+						ranges[i] = new Range (ranges[i].Start, uid);
+						count++;
+						return;
+					}
+
+					min = i + 1;
+					i = min;
+				} else {
+					if (uid == ranges[i].Start + 1) {
+						if (i > 0 && uid + 1 >= ranges[i - 1].End) {
+							// merge the 2 ranges together
+							ranges[i - 1] = new Range (ranges[i - 1].Start, ranges[i].End);
+							ranges.RemoveAt (i);
+							count++;
+							return;
+						}
+
+						ranges[i] = new Range (uid, ranges[i].End);
+						count++;
+						return;
+					}
+
+					max = i;
+				}
+			} while (min < max);
+
+			var range = new Range (uid, uid);
+
+			if (i < ranges.Count)
+				ranges.Insert (i, range);
+			else
+				ranges.Add (range);
+
+			count++;
+		}
+
+		void Append (uint uid)
+		{
+			if (IndexOfRange (uid) != -1)
 				return;
 
 			count++;
 
 			if (ranges.Count > 0) {
-				var range = ranges[ranges.Count - 1];
+				int index = ranges.Count - 1;
+				var range = ranges[index];
 
 				if (range.Start == range.End) {
-					if (uid.Id == range.End.Id + 1 || uid.Id == range.End.Id - 1) {
-						range.End = uid;
+					if (uid == range.End + 1 || uid == range.End - 1) {
+						ranges[index] = new Range (range.Start, uid);
 						return;
 					}
 				} else if (range.Start < range.End) {
-					if (uid.Id == range.End.Id + 1) {
-						range.End = uid;
+					if (uid == range.End + 1) {
+						ranges[index] = new Range (range.Start, uid);
 						return;
 					}
 				} else if (range.Start > range.End) {
-					if (uid.Id == range.End.Id - 1) {
-						range.End = uid;
+					if (uid == range.End - 1) {
+						ranges[index] = new Range (range.Start, uid);
 						return;
 					}
 				}
 			}
 
-			ranges.Add (new UniqueIdRange (uid, uid));
+			ranges.Add (new Range (uid, uid));
 		}
 
 		/// <summary>
@@ -234,12 +419,31 @@ namespace MailKit {
 		/// Adds the unique identifier to the set.
 		/// </remarks>
 		/// <param name="uid">The unique identifier to add.</param>
+		/// <exception cref="System.ArgumentException">
+		/// <paramref name="uid"/> is invalid.
+		/// </exception>
 		public void Add (UniqueId uid)
 		{
-			if (sorted)
-				BinaryInsert (uid);
-			else
-				Append (uid);
+			if (!uid.IsValid)
+				throw new ArgumentException ("Invalid unique identifier.", nameof (uid));
+
+			if (ranges.Count == 0) {
+				ranges.Add (new Range (uid.Id, uid.Id));
+				count++;
+				return;
+			}
+
+			switch (SortOrder) {
+			case SortOrder.Descending:
+				BinaryInsertDescending (uid.Id);
+				break;
+			case SortOrder.Ascending:
+				BinaryInsertAscending (uid.Id);
+				break;
+			default:
+				Append (uid.Id);
+				break;
+			}
 		}
 
 		/// <summary>
@@ -252,14 +456,10 @@ namespace MailKit {
 		public void AddRange (IEnumerable<UniqueId> uids)
 		{
 			if (uids == null)
-				throw new ArgumentNullException ("uids");
+				throw new ArgumentNullException (nameof (uids));
 
-			foreach (var uid in uids) {
-				if (sorted)
-					BinaryInsert (uid);
-				else
-					Append (uid);
-			}
+			foreach (var uid in uids)
+				Add (uid);
 		}
 
 		/// <summary>
@@ -287,7 +487,7 @@ namespace MailKit {
 		/// <param name="uid">The unique id.</param>
 		public bool Contains (UniqueId uid)
 		{
-			return IndexOfRange (uid) != -1;
+			return IndexOfRange (uid.Id) != -1;
 		}
 
 		/// <summary>
@@ -308,20 +508,20 @@ namespace MailKit {
 		public void CopyTo (UniqueId[] array, int arrayIndex)
 		{
 			if (array == null)
-				throw new ArgumentNullException ("array");
+				throw new ArgumentNullException (nameof (array));
 
 			if (arrayIndex < 0 || arrayIndex > (array.Length - Count))
-				throw new ArgumentOutOfRangeException ("arrayIndex");
+				throw new ArgumentOutOfRangeException (nameof (arrayIndex));
 
 			int index = arrayIndex;
 
 			for (int i = 0; i < ranges.Count; i++) {
 				foreach (var uid in ranges[i])
-					array[index++] = uid;
+					array[index++] = new UniqueId (Validity, uid);
 			}
 		}
 
-		void Remove (int index, UniqueId uid)
+		void Remove (int index, uint uid)
 		{
 			var range = ranges[index];
 
@@ -329,26 +529,26 @@ namespace MailKit {
 				// remove the first item in the range
 				if (range.Start != range.End) {
 					if (range.Start <= range.End)
-						range.Start = new UniqueId (uid.Id + 1);
+						ranges[index] = new Range (uid + 1, range.End);
 					else
-						range.Start = new UniqueId (uid.Id - 1);
+						ranges[index] = new Range (uid - 1, range.End);
 				} else {
 					ranges.RemoveAt (index);
 				}
 			} else if (uid == range.End) {
 				// remove the last item in the range
 				if (range.Start <= range.End)
-					range.End = new UniqueId (uid.Id - 1);
+					ranges[index] = new Range (range.Start, uid - 1);
 				else
-					range.End = new UniqueId (uid.Id + 1);
+					ranges[index] = new Range (range.Start, uid + 1);
 			} else {
 				// remove a uid from the middle of the range
 				if (range.Start < range.End) {
-					ranges.Insert (index, new UniqueIdRange (range.Start, new UniqueId (uid.Id - 1)));
-					range.Start = new UniqueId (uid.Id + 1);
+					ranges.Insert (index, new Range (range.Start, uid - 1));
+					ranges[index + 1] = new Range (uid + 1, range.End);
 				} else {
-					ranges.Insert (index, new UniqueIdRange (range.Start, new UniqueId (uid.Id + 1)));
-					range.Start = new UniqueId (uid.Id - 1);
+					ranges.Insert (index, new Range (range.Start, uid + 1));
+					ranges[index + 1] = new Range (uid - 1, range.End);
 				}
 			}
 
@@ -365,12 +565,12 @@ namespace MailKit {
 		/// <param name="uid">The unique identifier to remove.</param>
 		public bool Remove (UniqueId uid)
 		{
-			int index = IndexOfRange (uid);
+			int index = IndexOfRange (uid.Id);
 
 			if (index == -1)
 				return false;
 
-			Remove (index, uid);
+			Remove (index, uid.Id);
 
 			return true;
 		}
@@ -392,8 +592,8 @@ namespace MailKit {
 			int index = 0;
 
 			for (int i = 0; i < ranges.Count; i++) {
-				if (ranges[i].Contains (uid))
-					return index + ranges[i].IndexOf (uid);
+				if (ranges[i].Contains (uid.Id))
+					return index + ranges[i].IndexOf (uid.Id);
 
 				index += ranges[i].Count;
 			}
@@ -430,7 +630,7 @@ namespace MailKit {
 		public void RemoveAt (int index)
 		{
 			if (index < 0 || index >= count)
-				throw new ArgumentOutOfRangeException ("index");
+				throw new ArgumentOutOfRangeException (nameof (index));
 
 			int offset = 0;
 
@@ -463,7 +663,7 @@ namespace MailKit {
 		public UniqueId this [int index] {
 			get {
 				if (index < 0 || index >= count)
-					throw new ArgumentOutOfRangeException ("index");
+					throw new ArgumentOutOfRangeException (nameof (index));
 
 				int offset = 0;
 
@@ -473,10 +673,12 @@ namespace MailKit {
 						continue;
 					}
 
-					return ranges[i][index - offset];
+					uint uid = ranges[i][index - offset];
+
+					return new UniqueId (Validity, uid);
 				}
 
-				throw new ArgumentOutOfRangeException ("index");
+				throw new ArgumentOutOfRangeException (nameof (index));
 			}
 			set {
 				throw new NotSupportedException ();
@@ -498,7 +700,7 @@ namespace MailKit {
 		{
 			for (int i = 0; i < ranges.Count; i++) {
 				foreach (var uid in ranges[i])
-					yield return uid;
+					yield return new UniqueId (Validity, uid);
 			}
 
 			yield break;
@@ -560,7 +762,7 @@ namespace MailKit {
 		public static string ToString (IList<UniqueId> uids)
 		{
 			if (uids == null)
-				throw new ArgumentNullException ("uids");
+				throw new ArgumentNullException (nameof (uids));
 
 			if (uids.Count == 0)
 				return string.Empty;
@@ -577,8 +779,8 @@ namespace MailKit {
 			int index = 0;
 
 			while (index < uids.Count) {
-				if (uids[index].Id == 0)
-					throw new ArgumentException ("One or more of the uids is invalid.", "uids");
+				if (!uids[index].IsValid)
+					throw new ArgumentException ("One or more of the uids is invalid.", nameof (uids));
 
 				uint start = uids[index].Id;
 				uint end = uids[index].Id;
@@ -632,43 +834,64 @@ namespace MailKit {
 		public static bool TryParse (string token, uint validity, out UniqueIdSet uids)
 		{
 			if (token == null)
-				throw new ArgumentNullException ("token");
+				throw new ArgumentNullException (nameof (token));
 
-			uids = new UniqueIdSet { sorted = false };
+			uids = new UniqueIdSet (validity);
 
-			UniqueId start, end;
+			var order = SortOrder.None;
+			bool sorted = true;
+			uint start, end;
+			uint prev = 0;
 			int index = 0;
 
 			do {
-				if (!UniqueId.TryParse (token, ref index, validity, out start))
+				if (!UniqueId.TryParse (token, ref index, out start))
 					return false;
 
-				if (index >= token.Length) {
-					uids.ranges.Add (new UniqueIdRange (start, start));
-					uids.count++;
-					return true;
-				}
-
-				if (token[index] == ':') {
+				if (index < token.Length && token[index] == ':') {
 					index++;
 
-					if (!UniqueId.TryParse (token, ref index, validity, out end))
+					if (!UniqueId.TryParse (token, ref index, out end))
 						return false;
 
-					var range = new UniqueIdRange (start, end);
+					var range = new Range (start, end);
 					uids.count += range.Count;
 					uids.ranges.Add (range);
+
+					if (sorted) {
+						switch (order) {
+						default: sorted = true; order = start <= end ? SortOrder.Ascending : SortOrder.Descending; break;
+						case SortOrder.Descending: sorted = start >= end && start <= prev; break;
+						case SortOrder.Ascending: sorted = start <= end && start >= prev; break;
+						}
+					}
+
+					prev = end;
 				} else {
-					uids.ranges.Add (new UniqueIdRange (start, start));
+					uids.ranges.Add (new Range (start, start));
 					uids.count++;
+
+					if (sorted && uids.ranges.Count > 1) {
+						switch (order) {
+						default: sorted = true; order = start >= prev ? SortOrder.Ascending : SortOrder.Descending; break;
+						case SortOrder.Descending: sorted = start <= prev; break;
+						case SortOrder.Ascending: sorted = start >= prev; break;
+						}
+					}
+
+					prev = start;
 				}
 
 				if (index >= token.Length)
-					return true;
+					break;
 
 				if (token[index++] != ',')
 					return false;
 			} while (true);
+
+			uids.SortOrder = sorted ? order : SortOrder.None;
+
+			return true;
 		}
 
 		/// <summary>

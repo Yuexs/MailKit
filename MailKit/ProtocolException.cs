@@ -1,9 +1,9 @@
-//
+﻿//
 // ProtocolException.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@
 
 using System;
 #if SERIALIZABLE
+using System.Security;
 using System.Runtime.Serialization;
 #endif
 
@@ -34,8 +35,11 @@ namespace MailKit {
 	/// The exception that is thrown when there is a protocol error.
 	/// </summary>
 	/// <remarks>
-	/// A <see cref="ProtocolException"/> can be thrown by any of the various client
-	/// methods in MailKit.
+	/// <para>A <see cref="ProtocolException"/> can be thrown by any of the various client
+	/// methods in MailKit.</para>
+	/// <para>Since many protocol exceptions are fatal, it is important to check whether
+	/// or not the client is still connected using the <see cref="IMailService.IsConnected"/>
+	/// property when this exception is thrown.</para>
 	/// </remarks>
 #if SERIALIZABLE
 	[Serializable]
@@ -51,6 +55,7 @@ namespace MailKit {
 		/// </remarks>
 		/// <param name="info">The serialization info.</param>
 		/// <param name="context">The streaming context.</param>
+		[SecuritySafeCritical]
 		protected ProtocolException (SerializationInfo info, StreamingContext context) : base (info, context)
 		{
 		}
@@ -66,6 +71,7 @@ namespace MailKit {
 		/// <param name="innerException">An inner exception.</param>
 		protected ProtocolException (string message, Exception innerException) : base (message, innerException)
 		{
+			HelpLink = "https://github.com/jstedfast/MailKit/blob/master/FAQ.md#ProtocolLog";
 		}
 
 		/// <summary>
@@ -77,6 +83,7 @@ namespace MailKit {
 		/// <param name="message">The error message.</param>
 		protected ProtocolException (string message) : base (message)
 		{
+			HelpLink = "https://github.com/jstedfast/MailKit/blob/master/FAQ.md#ProtocolLog";
 		}
 
 		/// <summary>
@@ -87,6 +94,7 @@ namespace MailKit {
 		/// </remarks>
 		protected ProtocolException ()
 		{
+			HelpLink = "https://github.com/jstedfast/MailKit/blob/master/FAQ.md#ProtocolLog";
 		}
 	}
 }

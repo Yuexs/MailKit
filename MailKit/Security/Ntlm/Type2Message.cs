@@ -1,4 +1,4 @@
-//
+﻿//
 // Mono.Security.Protocol.Ntlm.Type2Message - Challenge
 //
 // Authors: Sebastien Pouliot <sebastien@ximian.com>
@@ -6,7 +6,7 @@
 //
 // Copyright (c) 2003 Motus Technologies Inc. (http://www.motus.com)
 // Copyright (c) 2004 Novell, Inc (http://www.novell.com)
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // References
 // a.	NTLM Authentication Scheme for HTTP, Ronald Tschalär
@@ -74,10 +74,10 @@ namespace MailKit.Security.Ntlm {
 			get { return (byte[]) nonce.Clone (); }
 			set { 
 				if (value == null)
-					throw new ArgumentNullException ("value");
+					throw new ArgumentNullException (nameof (value));
 
 				if (value.Length != 8)
-					throw new ArgumentException ("Invalid Nonce Length (should be 8 bytes).", "value");
+					throw new ArgumentException ("Invalid Nonce Length (should be 8 bytes).", nameof (value));
 
 				nonce = (byte[]) value.Clone (); 
 			}
@@ -92,7 +92,12 @@ namespace MailKit.Security.Ntlm {
 		}
 
 		public byte[] EncodedTargetInfo {
-			get { return (byte[]) targetInfo.Clone (); }
+			get {
+				if (targetInfo != null)
+					return (byte[]) targetInfo.Clone ();
+
+				return new byte[0];
+			}
 		}
 
 		void Decode (byte[] message, int startIndex, int length)
@@ -107,20 +112,19 @@ namespace MailKit.Security.Ntlm {
 			var targetNameOffset = BitConverterLE.ToUInt16 (message, startIndex + 16);
 
 			if (targetNameLength > 0) {
-				if ((Flags & NtlmFlags.NegotiateOem) != 0)
-					TargetName = Encoding.ASCII.GetString (message, startIndex + targetNameOffset, targetNameLength);
-				else
-					TargetName = Encoding.Unicode.GetString (message, startIndex + targetNameOffset, targetNameLength);
+				var encoding = (Flags & NtlmFlags.NegotiateOem) != 0 ? Encoding.UTF8 : Encoding.Unicode;
+
+				TargetName = encoding.GetString (message, startIndex + targetNameOffset, targetNameLength);
 			}
-			
+
 			// The Target Info block is optional.
-			if (message.Length >= 48) {
+			if (message.Length >= 48 && targetNameOffset >= 48) {
 				var targetInfoLength = BitConverterLE.ToUInt16 (message, startIndex + 40);
 				var targetInfoOffset = BitConverterLE.ToUInt16 (message, startIndex + 44);
 
-				TargetInfo = new TargetInfo (message, targetInfoOffset, targetInfoLength, (Flags & NtlmFlags.NegotiateUnicode) != 0);
+				if (targetInfoLength > 0 && targetInfoOffset < message.Length && targetInfoLength <= (message.Length - targetInfoOffset)) {
+					TargetInfo = new TargetInfo (message, startIndex + targetInfoOffset, targetInfoLength, (Flags & NtlmFlags.NegotiateUnicode) != 0);
 
-				if (targetInfoLength > 0) {
 					targetInfo = new byte[targetInfoLength];
 					Buffer.BlockCopy (message, startIndex + targetInfoOffset, targetInfo, 0, targetInfoLength);
 				}

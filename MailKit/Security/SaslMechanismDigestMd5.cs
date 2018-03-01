@@ -1,9 +1,9 @@
-//
+﻿//
 // SaslMechanismDigestMd5.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -32,8 +32,10 @@ using System.Collections.Generic;
 #if NETFX_CORE
 using Encoding = Portable.Text.Encoding;
 using MD5 = MimeKit.Cryptography.MD5;
+#elif NETSTANDARD
+using System.Security.Cryptography;
+using MD5 = MimeKit.Cryptography.MD5;
 #else
-using MD5 = System.Security.Cryptography.MD5CryptoServiceProvider;
 using System.Security.Cryptography;
 #endif
 
@@ -72,9 +74,10 @@ namespace MailKit.Security {
 		/// <para>-or-</para>
 		/// <para><paramref name="credentials"/> is <c>null</c>.</para>
 		/// </exception>
-		internal SaslMechanismDigestMd5 (Uri uri, ICredentials credentials, string entropy) : base (uri, credentials)
+		internal SaslMechanismDigestMd5 (Uri uri, NetworkCredential credentials, string entropy) : base (credentials)
 		{
 			cnonce = entropy;
+			Uri = uri;
 		}
 
 		/// <summary>
@@ -90,7 +93,60 @@ namespace MailKit.Security {
 		/// <para>-or-</para>
 		/// <para><paramref name="credentials"/> is <c>null</c>.</para>
 		/// </exception>
+		[Obsolete ("Use SaslMechanismDigestMd5(NetworkCredential) instead.")]
 		public SaslMechanismDigestMd5 (Uri uri, ICredentials credentials) : base (uri, credentials)
+		{
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="MailKit.Security.SaslMechanismDigestMd5"/> class.
+		/// </summary>
+		/// <remarks>
+		/// Creates a new DIGEST-MD5 SASL context.
+		/// </remarks>
+		/// <param name="uri">The URI of the service.</param>
+		/// <param name="userName">The user name.</param>
+		/// <param name="password">The password.</param>
+		/// <exception cref="System.ArgumentNullException">
+		/// <para><paramref name="uri"/> is <c>null</c>.</para>
+		/// <para>-or-</para>
+		/// <para><paramref name="userName"/> is <c>null</c>.</para>
+		/// <para>-or-</para>
+		/// <para><paramref name="password"/> is <c>null</c>.</para>
+		/// </exception>
+		[Obsolete ("Use SaslMechanismDigestMd5(string, string) instead.")]
+		public SaslMechanismDigestMd5 (Uri uri, string userName, string password) : base (uri, userName, password)
+		{
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="MailKit.Security.SaslMechanismDigestMd5"/> class.
+		/// </summary>
+		/// <remarks>
+		/// Creates a new DIGEST-MD5 SASL context.
+		/// </remarks>
+		/// <param name="credentials">The user's credentials.</param>
+		/// <exception cref="System.ArgumentNullException">
+		/// <paramref name="credentials"/> is <c>null</c>.
+		/// </exception>
+		public SaslMechanismDigestMd5 (NetworkCredential credentials) : base (credentials)
+		{
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="MailKit.Security.SaslMechanismDigestMd5"/> class.
+		/// </summary>
+		/// <remarks>
+		/// Creates a new DIGEST-MD5 SASL context.
+		/// </remarks>
+		/// <param name="userName">The user name.</param>
+		/// <param name="password">The password.</param>
+		/// <exception cref="System.ArgumentNullException">
+		/// <para><paramref name="userName"/> is <c>null</c>.</para>
+		/// <para>-or-</para>
+		/// <para><paramref name="password"/> is <c>null</c>.</para>
+		/// </exception>
+		public SaslMechanismDigestMd5 (string userName, string password) : base (userName, password)
 		{
 		}
 
@@ -132,8 +188,6 @@ namespace MailKit.Security {
 			if (token == null)
 				throw new NotSupportedException ("DIGEST-MD5 does not support SASL-IR.");
 
-			var cred = Credentials.GetCredential (Uri, MechanismName);
-
 			switch (state) {
 			case LoginState.Auth:
 				if (token.Length > 2048)
@@ -150,7 +204,7 @@ namespace MailKit.Security {
 					cnonce = Convert.ToBase64String (entropy);
 				}
 
-				response = new DigestResponse (challenge, Uri.Scheme, Uri.DnsSafeHost, cred.UserName, cred.Password, cnonce);
+				response = new DigestResponse (challenge, Uri.Scheme, Uri.DnsSafeHost, Credentials.UserName, Credentials.Password, cnonce);
 				state = LoginState.Final;
 				return response.Encode ();
 			case LoginState.Final:
@@ -164,7 +218,7 @@ namespace MailKit.Security {
 				if (!DigestChallenge.TryParseKeyValuePair (text, ref index, out key, out value))
 					throw new SaslException (MechanismName, SaslErrorCode.IncompleteChallenge, "Server response contained incomplete authentication data.");
 
-				var expected = response.ComputeHash (cred.Password, false);
+				var expected = response.ComputeHash (Credentials.Password, false);
 				if (value != expected)
 					throw new SaslException (MechanismName, SaslErrorCode.IncorrectHash, "Server response did not contain the expected hash.");
 
@@ -426,10 +480,10 @@ namespace MailKit.Security {
 			// compute A1
 			text = string.Format ("{0}:{1}:{2}", UserName, Realm, password);
 			buf = Encoding.UTF8.GetBytes (text);
-			using (var md5 = new MD5 ())
+			using (var md5 = MD5.Create ())
 				digest = md5.ComputeHash (buf);
 
-			using (var md5 = new MD5 ()) {
+			using (var md5 = MD5.Create ()) {
 				md5.TransformBlock (digest, 0, digest.Length, null, 0);
 				text = string.Format (":{0}:{1}", Nonce, CNonce);
 				if (!string.IsNullOrEmpty (AuthZid))
@@ -447,14 +501,14 @@ namespace MailKit.Security {
 				text += ":00000000000000000000000000000000";
 
 			buf = Encoding.ASCII.GetBytes (text);
-			using (var md5 = new MD5 ())
+			using (var md5 = MD5.Create ())
 				digest = md5.ComputeHash (buf);
 			a2 = HexEncode (digest);
 
 			// compute KD
 			text = string.Format ("{0}:{1}:{2:x8}:{3}:{4}:{5}", a1, Nonce, Nc, CNonce, Qop, a2);
 			buf = Encoding.ASCII.GetBytes (text);
-			using (var md5 = new MD5 ())
+			using (var md5 = MD5.Create ())
 				digest = md5.ComputeHash (buf);
 
 			return HexEncode (digest);

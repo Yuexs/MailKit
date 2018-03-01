@@ -1,9 +1,9 @@
-//
+﻿//
 // AssemblyInfo.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -36,14 +36,14 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration ("")]
 [assembly: AssemblyCompany ("Xamarin Inc.")]
 [assembly: AssemblyProduct ("MailKit")]
-[assembly: AssemblyCopyright ("Copyright © 2013-2015 Xamarin Inc. (www.xamarin.com)")]
+[assembly: AssemblyCopyright ("Copyright © 2013-2018 Xamarin Inc. (www.xamarin.com)")]
 [assembly: AssemblyTrademark ("Xamarin Inc.")]
 [assembly: AssemblyCulture ("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 
 // COM, set the ComVisible attribute to true on that type.
-[assembly: ComVisible (false)]
+[assembly: ComVisible (true)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid ("2fe79b66-d107-45da-9493-175f59c4a53c")]
@@ -79,6 +79,6 @@ using System.Runtime.InteropServices;
 //
 // If there have only been bug fixes, bump the Micro Version and/or the Build Number
 //    in the AssemblyFileVersion attribute.
-[assembly: AssemblyInformationalVersion ("1.2.13.0")]
-[assembly: AssemblyFileVersion ("1.2.13.0")]
-[assembly: AssemblyVersion ("1.2.0.0")]
+[assembly: AssemblyInformationalVersion ("2.0.1.0")]
+[assembly: AssemblyFileVersion ("2.0.1.0")]
+[assembly: AssemblyVersion ("2.0.0.0")]

@@ -1,5 +1,291 @@
 # Release Notes
 
+### MailKit 2.0.1
+
+* Obsoleted all SaslMechanism constructors that took a Uri argument and replaced them
+  with variants that no longer require the Uri and instead take a NetworkCredential
+  or a set of strings for the user name and password. This simplifies authenticating
+  with OAuth 2.0:
+
+```csharp
+var oauth2 = new SaslMechanismOAuth2 (username, auth_token);
+
+client.Authenticate (oauth2);
+```
+
+### MailKit 2.0.0
+
+* Updated MailKit to fully support async IO instead of using Task.Run() wrappers.
+* Fixed a resource leak when fetching IMAP body parts gets an exception.
+* Fixed each of the Client.Connect() implementtions to catch exceptions thrown by
+  IProtocolLogger.LogConnect().
+* Removed the ImapFolder.MessagesArrived event.
+* Added new Authenticate() methods that take a SaslMechanism to avoid the need to
+  manipulate Client.AuthenticationMechanisms in order to tweak which SASL mechanisms
+  you'd like the client to use in Authenticate().
+* Added new SslHandshakeException with a helpful error message that can be thrown by
+  the Connect() methods. This replaces the obscure SocketExceptions previously thrown
+  by SslStream.
+* Fixed support for the IMAP UTF8=ACCEPT extension.
+* Improved ImapFolder.CommitStream() API to provide section, offset and length.
+* Treat the SMTP X-EXPS capability in an EHLO response the same as AUTH. (issue #603)
+* Dropped support for .NET 4.0.
+
+Note: As of 2.0, XOAUTH2 is no longer in the list of SASL mechanisms that is tried
+when using the Authenticate() methods that have existed pre-MailKit 2.0.
+Instead, you must now use Authenticate(SaslMechanism, CancellationToken).
+
+An example usage might look like this:
+
+```csharp
+// Note: The Uri isn't used except with ICredentials.GetCredential (Uri) so unless
+// you implemented your own ICredentials class, the Uri is a dummy argument.
+var uri = new Uri ("imap://imap.gmail.com");
+var oauth2 = new SaslMechanismOAuth2 (uri, username, auth_token);
+
+client.Authenticate (oauth2);
+```
+
+### MailKit 1.22.0
+
+* Enable TLSv1.1 and 1.2 for .NETStandard.
+* Read any remaining literal data after parsing headers. Fixes an issue when requesting
+  specific headers in an ImapFolder.Fetch() request if the server sends an extra newline.
+
+### MailKit 1.20.0
+
+* Fixed UniqueIdRange.ToString() to always output a string in the form ${start}:${end} even if
+  start == end. (issue #572)
+
+### MailKit 1.18.1
+
+* Gracefully handle IMAP COPYUID resp-codes without src or dest uid-set tokens. (issue #555)
+* Be more lenient with unquoted IMAP folder names containing ']'. (issue #557)
+
+### MailKit 1.18.0
+
+* Improved logic for cached FolderAttributes on ImapFolder objects.
+* If/when the \NonExistent flag is present, reset ImapFolder state as it probably means
+  another client has deleted the folder.
+* Added work-around for home.pl which sends an untagged `* [COPYUID ...]` response
+  without an `OK` (technically, the COPYUID resp-code should only appear in the tagged
+  response, but accept it anyway).
+
+### MailKit 1.16.2
+
+* Added a leaveOpen param to the ProtocolLogger .ctor. (issue #506)
+* Added a CheckCertificateRevocation property on MailService. (issue #520)
+* Fixed ImapFolder to update the Count property and emit CountChanged when the IMAP server sends
+  an untagged VANISHED response. (issue #521)
+* Fixed ImapEngine to properly handle converting character tokens into strings. (issue #522)
+* Fixed SmtpClient to properly handle DIGEST-MD5 auth errors in order to fall back to the next
+  authentication mechanism.
+* Fixed Pop3Client to properly detect APOP tokens after arbitrary text. (issue #529)
+* Disabled NTLM authentication since it often doesn't work properly. (issue #532)
+
+### MailKit 1.16.1
+
+* Properly handle a NIL body-fld-params token for body-part-mpart. (issue #503)
+
+### MailKit 1.16.0
+
+* Improved IMAP ENVELOPE parser to prevent exceptions when parsing invalid mailbox addresses. (issue #494)
+* Fixed UniqueId and UniqueIdRange to prevent developers from creating invalid UIDs and ranges.
+* Fixed ImapFolder.FetchStream() to properly emit MODSEQ changes if the server sends them.
+* Fixed SmtpClient to call OnNoRecipientsAccepted even in the non-PIPELINE case. (issue #491)
+
+### MailKit 1.14.0
+
+* Improved IMAP's BODYSTRUCTURE parser to sanitize the Content-Disposition values. (issue #486)
+* Improved robustness of IMAP's BODYSTRUCTURE parser in cases where qstring tokens have unescaped
+  quotes. (issue #485)
+* Fixed IMAP to properly handle NIL as a folder name in LIST, LSUB and STATUS responses. (issue #482)
+* Added ImapFolder.GetHeaders() to allow developers to download the entire set of message headers.
+* Added SMTP support for International Domain Names in email addresses used in the MAIL FROM and
+  RCPT TO commands.
+* Modified SmtpClient to no longer throw a NotSupportedException when trying to send messages to
+  a recipient with a unicode local-part in the email address when the SMTP server does not support
+  the SMTPUTF8 extension. Instead, the local-part is passed through as UTF-8, leaving it up to the
+  server to reject either the command or the message. This seems to provide the best interoperability.
+
+### MailKit 1.12.0
+
+* Allow an empty string text argument for SearchQuery.ContainsHeader(). (issue #451)
+* Fixed SaslMechanism.IsProhibited() logic to properly use logical ands. Thanks to
+  Stefan Seering for this fix.
+
+### MailKit 1.10.2
+
+* Added an IsAuthenticated property to IMailService.
+* Fixed the ImapFolder.Quota class to not be public.
+
+### MailKit 1.10.1
+
+* Modified the ImapClient to always LIST the INBOX even if it is a namespace in order to get any
+  flags set on it.
+* Fixed ImapFolder to handle Quota Roots that do not match an existing folder. (issue #433)
+* Added work-around for Courier-IMAP sending "* 0 FETCH ..." on flag changes. (issue #428)
+* Updated MessageSorter to be smarter about validating arguments such that it will only
+  check for IMessageSummary fields that it will *actually* need in order to perform
+  the specified sort.
+* Fixed SmtpClient.Authenticate() to throw an AuthenticationException with a message
+  from the SMTP server if available.
+
+### MailKit 1.10.0
+
+* Added SearchQuery.Uids() to allow more powerful search expressions involving sets of uids.
+* Changed ImapClient.GetFolders() to return IList instead of IEnumerable.
+* Fixed a bug in MessageThreader.
+* Fixed bugs in Envelope.ToString() and Envelope.TryParse().
+* Fixed NTLM's Type2Message.Encode() logic to properly handle a null TargetInfo field.
+* Obsoleted some ImapFolder.Search() methods and replaced them with an equivalent ImapFolder.Sort()
+  method.
+* Added a ResponseText property to ImapCommandException.
+* Fixed ImapFolder to emit a HighestModSeqChanged event when we get untagged FETCH responses with
+  a higher MODSEQ value.
+* Improved SearchQuery optimization for IMAP.
+* Added SearchOptions.None.
+
+### MailKit 1.8.1
+
+* Fixed the NuGet packages to reference MimeKit 1.8.0.
+* Added an SmtpClient.QueryCapabilitiesAfterAuthenticating property to work around broken SMTP servers
+  where sending EHLO after a successful AUTH command incorrectly resets their authenticated state.
+
+### MailKit 1.8.0
+
+* Added a new Search()/SearchAsync() to ImapFolder that take a raw query string.
+* Implemented support for the IMAP FILTERS extension and improved support for the METADATA extension.
+* Fixed NTLM authentication support to use NTLMv2. (issue #397)
+* Added support for IMAP's SEARCH=FUZZY relevancy scores.
+* Added an IMailFolder.ModSeqChanged event.
+* Added UniqueIdRange.All for convenience.
+
+### MailKit 1.6.0
+
+* Added support for the new IMAP LITERAL- extension.
+* Added support for the new IMAP APPENDLIMIT extension.
+* Fixed APOP authentication in the Pop3Client. (issue #395)
+* Reset the SmtpClient's Capabilities after disconnecting.
+* Modified ImapFolder.Search() to return a UniqueIdSet for IMAP servers that do not support
+  the ESEARCH extension (which already returns a UniqueIdSet).
+* Added mail.shaw.ca to the list of SMTP servers that break when sending EHLO after AUTH. (issue #393)
+* Work around broken POP3 servers that reply "+OK" instead of "+" in SASL negotiations. (issue #391)
+* Modified the IMAP parser to properly allow "[" to appear within flag tokens. (issue #390)
+
+### MailKit 1.4.2.1
+
+* Fixed a regression in 1.4.2 where using a bad password in ImapClient.Authenticate() did not properly
+  throw an exception when using a SASL mechanism. (issue #383)
+
+### MailKit 1.4.2
+
+* Properly initialize the private Uri fields in Connect() for Windows Universal 8.1. (issue #381, #382)
+* Added SecuritySafeCritical attributes to try and match base Exception in case that matters.
+* Added missing GetObjectData() implementation to Pop3CommandException.
+* Strong-name the .NET Core assemblies.
+* Make sure to process Alert resp-codes in ImapClient. (issue #377)
+
+### MailKit 1.4.1
+
+* Updated the NTLM SASL mechanism to include a Windows OS version in the response if the server
+  requests it (apparently this should only happen if the server is in debug mode).
+* Updated the IMAP BODYSTRUCTURE parser to try and work around BODYSTRUCTURE responses that
+  do not properly encode the mime-type of a part where it only provides the media-subtype token
+  instead of both the media-type and media-subtype tokens. (issue #371)
+* Added smtp.dm.aliyun.com to the list of broken SMTP servers that failed to read the SMTP
+  specifications and improperly reset their state after sending an EHLO command after
+  authenticating (which the specifications explicitly state the clients SHOULD do). (issue #370)
+
+### MailKit 1.4.0
+
+* Added support for .NET Core 1.0
+
+### MailKit 1.2.24
+
+* Fixed logic for constructing the HELO command on WP8. (issue #351)
+* Modified ImapFolder.Search() to not send the optional CHARSET search param if the charset
+  is US-ASCII. This way work around some broken IMAP servers that do not properly implement
+  support for the CHARSET parameter. (issue #348)
+* Added more MailService methods to IMailService.
+
+### MailKit 1.2.23
+
+* Properly apply SecurityCriticalAttribute to GetObjectData() on custom Exceptions. (issue #340)
+
+### MailKit 1.2.22
+
+* Updated IMAP BODY parser to handle a NIL media type by treating it as "application".
+* Updated IMAP SEARCH response parser to work around search-return-data pairs within parens.
+* Added a missing SmtpStatusCode enum value for code 555. (issue #327)
+* Opened up more of the SearchQuery API to make it possible to serialize/deserialize via JSON.
+  (issue #331)
+* Updated to reference BouncyCastle via NuGet.org packages rather than via project references.
+
+### MailKit 1.2.21
+
+* Replaced SmtpClient's virtual ProcessRcptToResponse() method with OnRecipientAccepted()
+  and OnRecipientNotAccepted(). (issue #309)
+* Added MailService.DefaultServerCertificateValidationCallback() which accepts all
+  self-signed certificates (a common operation that consumers want).
+* Fixed encoding and decoding of IMAP folder names that include surrogate pairs.
+* Fixed IMAP SEARCH logic for X-GM-LABELS.
+
+### MailKit 1.2.20
+
+* Added a work-around for GoDaddy's ASP.NET web host which does not support the iso-8859-1
+  System.Text.Encoding (used as a fallback encoding within MailKit) by falling back to
+  Windows-1252 instead.
+* Improved NTLM support.
+
+### MailKit 1.2.19
+
+* Added support for the SMTP VRFY and EXPN commands.
+
+### MailKit 1.2.18
+
+* If the IMAP server sends a `* ID NIL` response, return null for ImapClient.Identify().
+* Allow developers to override the charset used when authenticating. (issue #292)
+
+### MailKit 1.2.17
+
+* Exposed MailKit.Search.OrderByType and MailKit.Search.SortOrder to the public API.
+* Modified IMailFolder.CopyTo() and MoveTo() to return a UniqueIdMap instead of a UniqueIdSet.
+* Improved ImapProtocolException error messages to be more informative.
+* Added an IsSecure property to ImapClient, Pop3Client and SmtpClient.
+* Fixed support for the IMAP COMPRESS=DEFLATE extension to work properly.
+* Modified UniqueId.Id and .Validity to be properties instead of fields.
+* Reduced memory usage for UniqueIdRange (-33%) and UniqueIdSet (-50%).
+* Vastly improved the performance of UniqueIdSet (~2x).
+* Added an ImapClient.GetFolders() overload that also requests the status of each folder.
+* Modified the headersOnly parameter to the various Pop3Client.GetStream() methods to default to
+  false instead of forcing developers to pass in a value.
+* Updated the IMAP, POP3 and SMTP clients to be stricter with validating SSL certificates.
+
+### MailKit 1.2.16
+
+* Added support for the SCRAM-SHA-256 SASL mechanism.
+* Added support for the CREATE-SPECIAL-USE IMAP extension.
+* Added support for the METADATA IMAP extension.
+* Added support for the LIST-STATUS IMAP extension.
+
+### MailKit 1.2.15
+
+* Be more forgiving during SASL auth when a POP3 server sends unexpected text after a + response.
+  (issue #268)
+
+### MailKit 1.2.14
+
+* Fixed ImapFolder.Search() to not capitalize the date strings in date queries. (issue #252)
+* Fixed filtering logic in ImapFolder.GetSubfolders() to not filter out subfolders named Inbox.
+  (issue #255)
+* Exposed SmtpClient.ProcessRcptToResponse() as virtual protected to allow subclasses to override
+  error handling. (issue #256)
+* Modified SmtpCommandException .ctors to be public and fixed serialization logic. (issue #257)
+* Added workaround for broken smtp.sina.com mail server.
+* Throw a custom ImapProtocolException on "* BYE" during connection instead of "unexpected token".
+  (issue #262)
+
 ### MailKit 1.2.13
 
 * Fixed SmtpClient to not double dispose the socket.
@@ -23,7 +309,7 @@
 * Fixed ImapFolder.Close() to change the state to Closed even if the IMAP server does not
   support the UNSELECT command.
 * Allow the UIDVALIDITY argument to the COPYUID and APPENDUID resp-codes to be 0 even though
-  that value is llegal. Improves compatibility with SmarterMail. (issue #240)
+  that value is illegal. Improves compatibility with SmarterMail. (issue #240)
 
 ### MailKit 1.2.10
 
@@ -300,7 +586,7 @@ Note: If you are not yet ready to port your iOS application to the Unified API,
 
 * Fixed Pop3Client.GetMessages (int startIndex, int count, ...) to use
   1-based sequence numbers.
-* Fixed POP3 PIPELINING support to work as indtended (issue #114).
+* Fixed POP3 PIPELINING support to work as intended (issue #114).
 * Added a work-around for Office365.com IMAP to avoid
   ImapProtocolExceptions about unexpected '[' tokens when moving or
   copying messages between folders (issue #115).

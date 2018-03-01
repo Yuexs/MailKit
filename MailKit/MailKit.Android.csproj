@@ -3,8 +3,6 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{9BF818C3-C20E-4EFB-9426-F0A6C2EDC627}</ProjectGuid>
     <ProjectTypeGuids>{EFBA0AD7-5A72-4C68-AF49-83D382785DCF};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
@@ -21,8 +19,8 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\lib\MonoAndroid</OutputPath>
-    <IntermediateOutputPath>obj\Debug\lib\MonoAndroid</IntermediateOutputPath>
+    <OutputPath>bin\Debug\MonoAndroid</OutputPath>
+    <IntermediateOutputPath>obj\Debug\MonoAndroid</IntermediateOutputPath>
     <DefineConstants>DEBUG;TRACE;SERIALIZABLE;__MOBILE__;__ANDROID__;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -32,15 +30,15 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\lib\MonoAndroid</OutputPath>
-    <IntermediateOutputPath>obj\Release\lib\MonoAndroid</IntermediateOutputPath>
+    <OutputPath>bin\Release\MonoAndroid</OutputPath>
+    <IntermediateOutputPath>obj\Release\MonoAndroid</IntermediateOutputPath>
     <DefineConstants>SERIALIZABLE;__MOBILE__;__ANDROID__;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
     <AndroidUseSharedRuntime>false</AndroidUseSharedRuntime>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DocumentationFile>bin\Release\lib\MonoAndroid\MailKit.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\MonoAndroid\MailKit.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
@@ -59,8 +57,14 @@
       <Project>{004B4019-62B7-4A15-AF2C-C20968845C46}</Project>
       <Name>MimeKit.Android</Name>
     </ProjectReference>
+    <ProjectReference Include="..\submodules\MimeKit\submodules\bc-csharp\crypto\BouncyCastle.Android.csproj">
+      <Project>{A0D302CB-8866-4AB1-98B9-F0772EABF5DF}</Project>
+      <Name>BouncyCastle.Android</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Net\Imap\AsyncImapClient.cs" />
+    <Compile Include="Net\Imap\ImapCallbacks.cs" />
     <Compile Include="Net\Imap\ImapCapabilities.cs" />
     <Compile Include="Net\Imap\ImapClient.cs" />
     <Compile Include="Net\Imap\ImapCommand.cs" />
@@ -70,6 +74,9 @@
     <Compile Include="Net\Imap\ImapEngine.cs" />
     <Compile Include="Net\Imap\ImapFolder.cs" />
     <Compile Include="Net\Imap\ImapFolderConstructorArgs.cs" />
+    <Compile Include="Net\Imap\ImapFolderFetch.cs" />
+    <Compile Include="Net\Imap\ImapFolderFlags.cs" />
+    <Compile Include="Net\Imap\ImapFolderSearch.cs" />
     <Compile Include="Net\Imap\ImapImplementation.cs" />
     <Compile Include="Net\Imap\ImapProtocolException.cs" />
     <Compile Include="Net\Imap\ImapResponseCode.cs" />
@@ -77,6 +84,7 @@
     <Compile Include="Net\Imap\ImapStream.cs" />
     <Compile Include="Net\Imap\ImapToken.cs" />
     <Compile Include="Net\Imap\ImapUtils.cs" />
+    <Compile Include="Net\Pop3\AsyncPop3Client.cs" />
     <Compile Include="Net\Pop3\Pop3Capabilities.cs" />
     <Compile Include="Net\Pop3\Pop3Client.cs" />
     <Compile Include="Net\Pop3\Pop3Command.cs" />
@@ -85,6 +93,7 @@
     <Compile Include="Net\Pop3\Pop3Language.cs" />
     <Compile Include="Net\Pop3\Pop3ProtocolException.cs" />
     <Compile Include="Net\Pop3\Pop3Stream.cs" />
+    <Compile Include="Net\Smtp\AsyncSmtpClient.cs" />
     <Compile Include="Net\Smtp\SmtpCapabilities.cs" />
     <Compile Include="Net\Smtp\SmtpClient.cs" />
     <Compile Include="Net\Smtp\SmtpCommandException.cs" />
@@ -96,6 +105,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Search\BinarySearchQuery.cs" />
     <Compile Include="Search\DateSearchQuery.cs" />
+    <Compile Include="Search\FilterSearchQuery.cs" />
     <Compile Include="Search\HeaderSearchQuery.cs" />
     <Compile Include="Search\ISearchQueryOptimizer.cs" />
     <Compile Include="Search\NumericSearchQuery.cs" />
@@ -107,6 +117,7 @@
     <Compile Include="Search\SearchTerm.cs" />
     <Compile Include="Search\SortOrder.cs" />
     <Compile Include="Search\TextSearchQuery.cs" />
+    <Compile Include="Search\UidSearchQuery.cs" />
     <Compile Include="Search\UnarySearchQuery.cs" />
     <Compile Include="Security\Ntlm\BitConverterLE.cs" />
     <Compile Include="Security\Ntlm\ChallengeResponse.cs" />
@@ -131,7 +142,9 @@
     <Compile Include="Security\SaslMechanismPlain.cs" />
     <Compile Include="Security\SaslMechanismScramBase.cs" />
     <Compile Include="Security\SaslMechanismScramSha1.cs" />
+    <Compile Include="Security\SaslMechanismScramSha256.cs" />
     <Compile Include="Security\SecureSocketOptions.cs" />
+    <Compile Include="Security\SslHandshakeException.cs" />
     <Compile Include="AccessControl.cs" />
     <Compile Include="AccessControlList.cs" />
     <Compile Include="AccessRight.cs" />
@@ -146,6 +159,7 @@
     <Compile Include="BodyPartText.cs" />
     <Compile Include="BodyPartVisitor.cs" />
     <Compile Include="CommandException.cs" />
+    <Compile Include="CompressedStream.cs" />
     <Compile Include="DeliveryStatusNotification.cs" />
     <Compile Include="DuplexStream.cs" />
     <Compile Include="Envelope.cs" />
@@ -175,7 +189,6 @@
     <Compile Include="MessageFlagsChangedEventArgs.cs" />
     <Compile Include="MessageLabelsChangedEventArgs.cs" />
     <Compile Include="MessageNotFoundException.cs" />
-    <Compile Include="MessagesArrivedEventArgs.cs" />
     <Compile Include="MessageSentEventArgs.cs" />
     <Compile Include="MessageSorter.cs" />
     <Compile Include="MessageSummary.cs" />
@@ -184,6 +197,11 @@
     <Compile Include="MessagesVanishedEventArgs.cs" />
     <Compile Include="MessageThread.cs" />
     <Compile Include="MessageThreader.cs" />
+    <Compile Include="Metadata.cs" />
+    <Compile Include="MetadataCollection.cs" />
+    <Compile Include="MetadataOptions.cs" />
+    <Compile Include="MetadataTag.cs" />
+    <Compile Include="ModSeqChangedEventArgs.cs" />
     <Compile Include="NullProtocolLogger.cs" />
     <Compile Include="ProgressStream.cs" />
     <Compile Include="ProtocolException.cs" />
@@ -194,6 +212,7 @@
     <Compile Include="StatusItems.cs" />
     <Compile Include="ThreadingAlgorithm.cs" />
     <Compile Include="UniqueId.cs" />
+    <Compile Include="UniqueIdMap.cs" />
     <Compile Include="UniqueIdRange.cs" />
     <Compile Include="UniqueIdSet.cs" />
     <Compile Include="UriExtensions.cs" />
@@ -207,5 +226,5 @@
     <Folder Include="Security\" />
     <Folder Include="Security\Ntlm\" />
   </ItemGroup>
-  <Import Project="$(MSBuildExtensionsPath)\Novell\Novell.MonoDroid.CSharp.targets" />
+  <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
 </Project>

@@ -1,9 +1,9 @@
 ﻿//
 // ProgressStream.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@
 using System;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 
 using MimeKit.IO;
 
@@ -38,7 +39,7 @@ namespace MailKit {
 		public ProgressStream (Stream source, Action<int> update)
 		{
 			if (source == null)
-				throw new ArgumentNullException ("source");
+				throw new ArgumentNullException (nameof (source));
 
 			cancellable = source as ICancellableStream;
 			Source = source;
@@ -88,18 +89,6 @@ namespace MailKit {
 			set { Source.WriteTimeout = value; }
 		}
 
-		static void ValidateArguments (byte[] buffer, int offset, int count)
-		{
-			if (buffer == null)
-				throw new ArgumentNullException ("buffer");
-
-			if (offset < 0 || offset > buffer.Length)
-				throw new ArgumentOutOfRangeException ("offset");
-
-			if (count < 0 || count > (buffer.Length - offset))
-				throw new ArgumentOutOfRangeException ("count");
-		}
-
 		public int Read (byte[] buffer, int offset, int count, CancellationToken cancellationToken)
 		{
 			int n;
@@ -125,6 +114,16 @@ namespace MailKit {
 			return n;
 		}
 
+		public override async Task<int> ReadAsync (byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+		{
+			int n;
+
+			if ((n = await Source.ReadAsync (buffer, offset, count, cancellationToken).ConfigureAwait (false)) > 0)
+				Update (n);
+
+			return n;
+		}
+
 		public void Write (byte[] buffer, int offset, int count, CancellationToken cancellationToken)
 		{
 			if (cancellable != null)
@@ -139,6 +138,14 @@ namespace MailKit {
 		public override void Write (byte[] buffer, int offset, int count)
 		{
 			Source.Write (buffer, offset, count);
+
+			if (count > 0)
+				Update (count);
+		}
+
+		public override async Task WriteAsync (byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+		{
+			await Source.WriteAsync (buffer, offset, count, cancellationToken).ConfigureAwait (false);
 
 			if (count > 0)
 				Update (count);
@@ -160,6 +167,11 @@ namespace MailKit {
 		public override void Flush ()
 		{
 			Source.Flush ();
+		}
+
+		public override Task FlushAsync (CancellationToken cancellationToken)
+		{
+			return Source.FlushAsync (cancellationToken);
 		}
 
 		public override void SetLength (long value)

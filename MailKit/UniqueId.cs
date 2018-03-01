@@ -1,9 +1,9 @@
 ﻿//
 // UniqueId.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,7 @@ namespace MailKit {
 		/// <remarks>
 		/// The invalid <see cref="UniqueId"/> value.
 		/// </remarks>
-		public static readonly UniqueId Invalid = new UniqueId (0);
+		public static readonly UniqueId Invalid;
 
 		/// <summary>
 		/// The minimum <see cref="UniqueId"/> value.
@@ -60,21 +60,8 @@ namespace MailKit {
 		/// </remarks>
 		public static readonly UniqueId MaxValue = new UniqueId (uint.MaxValue);
 
-		/// <summary>
-		/// The validity, if non-zero.
-		/// </summary>
-		/// <remarks>
-		/// The UidValidity of the containing folder.
-		/// </remarks>
-		public readonly uint Validity;
-
-		/// <summary>
-		/// The identifier.
-		/// </summary>
-		/// <remarks>
-		/// The identifier.
-		/// </remarks>
-		public readonly uint Id;
+		readonly uint validity;
+		readonly uint id;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="MailKit.UniqueId"/> struct.
@@ -84,10 +71,16 @@ namespace MailKit {
 		/// </remarks>
 		/// <param name="validity">The uid validity.</param>
 		/// <param name="id">The unique identifier.</param>
+		/// <exception cref="System.ArgumentOutOfRangeException">
+		/// <paramref name="id"/> is <c>0</c>.
+		/// </exception>
 		public UniqueId (uint validity, uint id)
 		{
-			Validity = validity;
-			Id = id;
+			if (id == 0)
+				throw new ArgumentOutOfRangeException (nameof (id));
+
+			this.validity = validity;
+			this.id = id;
 		}
 
 		/// <summary>
@@ -97,10 +90,38 @@ namespace MailKit {
 		/// Creates a new <see cref="UniqueId"/> with the specified value.
 		/// </remarks>
 		/// <param name="id">The unique identifier.</param>
+		/// <exception cref="System.ArgumentOutOfRangeException">
+		/// <paramref name="id"/> is <c>0</c>.
+		/// </exception>
 		public UniqueId (uint id)
 		{
-			Validity = 0;
-			Id = id;
+			if (id == 0)
+				throw new ArgumentOutOfRangeException (nameof (id));
+
+			this.validity = 0;
+			this.id = id;
+		}
+
+		/// <summary>
+		/// Gets the identifier.
+		/// </summary>
+		/// <remarks>
+		/// The identifier.
+		/// </remarks>
+		/// <value>The identifier.</value>
+		public uint Id {
+			get { return id; }
+		}
+
+		/// <summary>
+		/// Gets the validity, if non-zero.
+		/// </summary>
+		/// <remarks>
+		/// Gets the UidValidity of the containing folder.
+		/// </remarks>
+		/// <value>The UidValidity of the containing folder.</value>
+		public uint Validity {
+			get { return validity; }
 		}
 
 		/// <summary>
@@ -272,7 +293,7 @@ namespace MailKit {
 		/// <returns>A <see cref="System.String"/> that represents the current <see cref="MailKit.UniqueId"/>.</returns>
 		public override string ToString ()
 		{
-			return Id.ToString ();
+			return Id.ToString (CultureInfo.InvariantCulture);
 		}
 
 		/// <summary>
@@ -284,9 +305,8 @@ namespace MailKit {
 		/// <returns><c>true</c> if the unique identifier was successfully parsed; otherwise, <c>false.</c>.</returns>
 		/// <param name="token">The token to parse.</param>
 		/// <param name="index">The index to start parsing.</param>
-		/// <param name="validity">The UIDVALIDITY value.</param>
 		/// <param name="uid">The unique identifier.</param>
-		internal static bool TryParse (string token, ref int index, uint validity, out UniqueId uid)
+		internal static bool TryParse (string token, ref int index, out uint uid)
 		{
 			uint value = 0;
 
@@ -300,7 +320,7 @@ namespace MailKit {
 				v = (uint) (c - '0');
 
 				if (value > uint.MaxValue / 10 || (value == uint.MaxValue / 10 && v > uint.MaxValue % 10)) {
-					uid = new UniqueId (0);
+					uid = 0;
 					return false;
 				}
 
@@ -308,9 +328,9 @@ namespace MailKit {
 				index++;
 			}
 
-			uid = new UniqueId (validity, value);
+			uid = value;
 
-			return uid.Id != 0;
+			return uid != 0;
 		}
 
 		/// <summary>
@@ -329,12 +349,12 @@ namespace MailKit {
 		public static bool TryParse (string token, uint validity, out UniqueId uid)
 		{
 			if (token == null)
-				throw new ArgumentNullException ("token");
+				throw new ArgumentNullException (nameof (token));
 
 			uint id;
 
-			if (!uint.TryParse (token, out id)) {
-				uid = new UniqueId (0);
+			if (!uint.TryParse (token, NumberStyles.None, CultureInfo.InvariantCulture, out id) || id == 0) {
+				uid = Invalid;
 				return false;
 			}
 
@@ -357,19 +377,7 @@ namespace MailKit {
 		/// </exception>
 		public static bool TryParse (string token, out UniqueId uid)
 		{
-			if (token == null)
-				throw new ArgumentNullException ("token");
-
-			uint id;
-
-			if (!uint.TryParse (token, out id)) {
-				uid = new UniqueId (0);
-				return false;
-			}
-
-			uid = new UniqueId (id);
-
-			return true;
+			return TryParse (token, 0, out uid);
 		}
 
 		/// <summary>
@@ -392,7 +400,7 @@ namespace MailKit {
 		/// </exception>
 		public static UniqueId Parse (string token, uint validity)
 		{
-			return new UniqueId (validity, uint.Parse (token, NumberStyles.None));
+			return new UniqueId (validity, uint.Parse (token, NumberStyles.None, CultureInfo.InvariantCulture));
 		}
 
 		/// <summary>
@@ -414,7 +422,7 @@ namespace MailKit {
 		/// </exception>
 		public static UniqueId Parse (string token)
 		{
-			return new UniqueId (uint.Parse (token, NumberStyles.None));
+			return new UniqueId (uint.Parse (token, NumberStyles.None, CultureInfo.InvariantCulture));
 		}
 	}
 }

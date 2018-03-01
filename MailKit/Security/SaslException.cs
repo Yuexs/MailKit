@@ -1,9 +1,9 @@
-//
+﻿//
 // SaslException.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
 //
 
 using System;
+using System.Security;
 using System.Runtime.Serialization;
 
 namespace MailKit.Security {
@@ -97,8 +98,14 @@ namespace MailKit.Security {
 		/// <param name="mechanism">The SASL mechanism.</param>
 		/// <param name="code">The error code.</param>
 		/// <param name="message">The error message.</param>
-		internal SaslException (string mechanism, SaslErrorCode code, string message) : base (message)
+		/// <exception cref="System.ArgumentNullException">
+		/// <paramref name="mechanism"/> is <c>null</c>.
+		/// </exception>
+		public SaslException (string mechanism, SaslErrorCode code, string message) : base (message)
 		{
+			if (mechanism == null)
+				throw new ArgumentNullException (nameof (mechanism));
+
 			Mechanism = mechanism;
 			ErrorCode = code;
 		}
@@ -116,10 +123,11 @@ namespace MailKit.Security {
 		/// <exception cref="System.ArgumentNullException">
 		/// <paramref name="info"/> is <c>null</c>.
 		/// </exception>
+		[SecurityCritical]
 		public override void GetObjectData (SerializationInfo info, StreamingContext context)
 		{
 			if (info == null)
-				throw new ArgumentNullException ("info");
+				throw new ArgumentNullException (nameof (info));
 
 			info.AddValue ("ErrorCode", (int) ErrorCode);
 			info.AddValue ("Mechanism", Mechanism);

@@ -1,9 +1,9 @@
-//
+﻿//
 // SaslMechanismCramMd5.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -28,10 +28,10 @@ using System;
 using System.Net;
 using System.Text;
 
-#if NETFX_CORE
+#if NETFX_CORE || NETSTANDARD
 using MD5 = MimeKit.Cryptography.MD5;
 #else
-using MD5 = System.Security.Cryptography.MD5CryptoServiceProvider;
+using System.Security.Cryptography;
 #endif
 
 namespace MailKit.Security {
@@ -61,7 +61,60 @@ namespace MailKit.Security {
 		/// <para>-or-</para>
 		/// <para><paramref name="credentials"/> is <c>null</c>.</para>
 		/// </exception>
+		[Obsolete ("Use SaslMechanismCramMd5(NetworkCredential) instead.")]
 		public SaslMechanismCramMd5 (Uri uri, ICredentials credentials) : base (uri, credentials)
+		{
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="MailKit.Security.SaslMechanismCramMd5"/> class.
+		/// </summary>
+		/// <remarks>
+		/// Creates a new CRAM-MD5 SASL context.
+		/// </remarks>
+		/// <param name="uri">The URI of the service.</param>
+		/// <param name="userName">The user name.</param>
+		/// <param name="password">The password.</param>
+		/// <exception cref="System.ArgumentNullException">
+		/// <para><paramref name="uri"/> is <c>null</c>.</para>
+		/// <para>-or-</para>
+		/// <para><paramref name="userName"/> is <c>null</c>.</para>
+		/// <para>-or-</para>
+		/// <para><paramref name="password"/> is <c>null</c>.</para>
+		/// </exception>
+		[Obsolete ("Use SaslMechanismCramMd5(string, string) instead.")]
+		public SaslMechanismCramMd5 (Uri uri, string userName, string password) : base (uri, userName, password)
+		{
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="MailKit.Security.SaslMechanismCramMd5"/> class.
+		/// </summary>
+		/// <remarks>
+		/// Creates a new CRAM-MD5 SASL context.
+		/// </remarks>
+		/// <param name="credentials">The user's credentials.</param>
+		/// <exception cref="System.ArgumentNullException">
+		/// <paramref name="credentials"/> is <c>null</c>.
+		/// </exception>
+		public SaslMechanismCramMd5 (NetworkCredential credentials) : base (credentials)
+		{
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="MailKit.Security.SaslMechanismCramMd5"/> class.
+		/// </summary>
+		/// <remarks>
+		/// Creates a new CRAM-MD5 SASL context.
+		/// </remarks>
+		/// <param name="userName">The user name.</param>
+		/// <param name="password">The password.</param>
+		/// <exception cref="System.ArgumentNullException">
+		/// <para><paramref name="userName"/> is <c>null</c>.</para>
+		/// <para>-or-</para>
+		/// <para><paramref name="password"/> is <c>null</c>.</para>
+		/// </exception>
+		public SaslMechanismCramMd5 (string userName, string password) : base (userName, password)
 		{
 		}
 
@@ -103,9 +156,8 @@ namespace MailKit.Security {
 			if (token == null)
 				throw new NotSupportedException ("CRAM-MD5 does not support SASL-IR.");
 
-			var cred = Credentials.GetCredential (Uri, MechanismName);
-			var userName = Encoding.UTF8.GetBytes (cred.UserName);
-			var password = Encoding.UTF8.GetBytes (cred.Password);
+			var userName = Encoding.UTF8.GetBytes (Credentials.UserName);
+			var password = Encoding.UTF8.GetBytes (Credentials.Password);
 			var ipad = new byte[64];
 			var opad = new byte[64];
 			byte[] digest;
@@ -113,7 +165,7 @@ namespace MailKit.Security {
 			if (password.Length > 64) {
 				byte[] checksum;
 
-				using (var md5 = new MD5 ())
+				using (var md5 = MD5.Create ())
 					checksum = md5.ComputeHash (password);
 
 				Array.Copy (checksum, ipad, checksum.Length);
@@ -128,13 +180,13 @@ namespace MailKit.Security {
 				opad[i] ^= 0x5c;
 			}
 
-			using (var md5 = new MD5 ()) {
+			using (var md5 = MD5.Create ()) {
 				md5.TransformBlock (ipad, 0, ipad.Length, null, 0);
 				md5.TransformFinalBlock (token, startIndex, length);
 				digest = md5.Hash;
 			}
 
-			using (var md5 = new MD5 ()) {
+			using (var md5 = MD5.Create ()) {
 				md5.TransformBlock (opad, 0, opad.Length, null, 0);
 				md5.TransformFinalBlock (digest, 0, digest.Length);
 				digest = md5.Hash;

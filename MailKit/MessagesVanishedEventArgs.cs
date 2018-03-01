@@ -1,7 +1,7 @@
-﻿//
+//
 // MessagesVanishedEventArgs.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
 // Copyright (c) 2014 Jeffrey Stedfast
 //
@@ -45,6 +45,9 @@ namespace MailKit {
 		/// </remarks>
 		/// <param name="uids">The list of unique identifiers.</param>
 		/// <param name="earlier">If set to <c>true</c>, the messages vanished in the past as opposed to just now.</param>
+		/// <exception cref="System.ArgumentNullException">
+		/// <paramref name="uids"/> is <c>null</c>.
+		/// </exception>
 		public MessagesVanishedEventArgs (IList<UniqueId> uids, bool earlier)
 		{
 			UniqueIds = new ReadOnlyCollection<UniqueId> (uids);

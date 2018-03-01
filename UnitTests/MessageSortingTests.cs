@@ -1,9 +1,9 @@
 ﻿//
 // MessageSortingTests.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2014 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -39,14 +39,33 @@ namespace UnitTests {
 	public class MessageSortingTests
 	{
 		[Test]
+		public void TestArgumentExceptions ()
+		{
+			var messages = new List<MessageSummary> { new MessageSummary (0) };
+			var orderBy = new OrderBy[] { OrderBy.Subject };
+			var emptyOrderBy = new OrderBy[0];
+
+			Assert.Throws<ArgumentNullException> (() => MessageSorter.Sort ((List<MessageSummary>) null, orderBy));
+			Assert.Throws<ArgumentNullException> (() => MessageSorter.Sort (messages, null));
+			Assert.Throws<ArgumentException> (() => MessageSorter.Sort (messages, emptyOrderBy));
+			Assert.Throws<ArgumentException> (() => MessageSorter.Sort (messages, orderBy));
+
+			Assert.Throws<ArgumentNullException> (() => MessageSorter.Sort ((IEnumerable<MessageSummary>) null, orderBy));
+			Assert.Throws<ArgumentNullException> (() => MessageSorter.Sort ((IEnumerable<MessageSummary>) messages, null));
+			Assert.Throws<ArgumentException> (() => MessageSorter.Sort ((IEnumerable<MessageSummary>) messages, emptyOrderBy));
+			Assert.Throws<ArgumentException> (() => MessageSorter.Sort ((IEnumerable<MessageSummary>) messages, orderBy));
+		}
+
+		[Test]
 		public void TestSorting ()
 		{
 			var messages = new List<MessageSummary> ();
 			MessageSummary summary;
 
 			summary = new MessageSummary (0);
+			summary.Fields = MessageSummaryItems.Envelope | MessageSummaryItems.Size;
 			summary.Envelope = new Envelope ();
-			summary.Envelope.Date = DateTimeOffset.Now;
+			summary.Envelope.Date = DateTimeOffset.Now.AddSeconds (-2);
 			summary.Envelope.Subject = "aaaa";
 			summary.Envelope.From.Add (new MailboxAddress ("A", "a@a.com"));
 			summary.Envelope.To.Add (new MailboxAddress ("A", "a@a.com"));
@@ -55,8 +74,9 @@ namespace UnitTests {
 			messages.Add (summary);
 
 			summary = new MessageSummary (1);
+			summary.Fields = MessageSummaryItems.Envelope | MessageSummaryItems.Size;
 			summary.Envelope = new Envelope ();
-			summary.Envelope.Date = DateTimeOffset.Now;
+			summary.Envelope.Date = DateTimeOffset.Now.AddSeconds (-1);
 			summary.Envelope.Subject = "bbbb";
 			summary.Envelope.From.Add (new MailboxAddress ("B", "b@b.com"));
 			summary.Envelope.To.Add (new MailboxAddress ("B", "b@b.com"));
@@ -65,6 +85,7 @@ namespace UnitTests {
 			messages.Add (summary);
 
 			summary = new MessageSummary (2);
+			summary.Fields = MessageSummaryItems.Envelope | MessageSummaryItems.Size;
 			summary.Envelope = new Envelope ();
 			summary.Envelope.Date = DateTimeOffset.Now;
 			summary.Envelope.Subject = "cccc";
@@ -98,6 +119,11 @@ namespace UnitTests {
 			Assert.AreEqual (1, messages[0].Index, "Sorting by size failed.");
 			Assert.AreEqual (0, messages[1].Index, "Sorting by size failed.");
 			Assert.AreEqual (2, messages[2].Index, "Sorting by size failed.");
+
+			messages.Sort (new [] { OrderBy.Date });
+			Assert.AreEqual (0, messages[0].Index, "Sorting by date failed.");
+			Assert.AreEqual (1, messages[1].Index, "Sorting by date failed.");
+			Assert.AreEqual (2, messages[2].Index, "Sorting by date failed.");
 
 			messages.Sort (new [] { OrderBy.Size, OrderBy.Subject });
 			Assert.AreEqual (1, messages[0].Index, "Sorting by size+subject failed.");

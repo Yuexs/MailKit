@@ -1,9 +1,9 @@
 ﻿//
 // MessageThreader.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -80,6 +80,10 @@ namespace MailKit {
 				get { yield break; }
 			}
 
+			public string PreviewText {
+				get { return string.Empty; }
+			}
+
 			public Envelope Envelope {
 				get { return Message != null ? Message.Envelope : Children[0].Envelope; }
 			}
@@ -152,7 +156,7 @@ namespace MailKit {
 
 			foreach (var message in messages) {
 				if (message.Envelope == null)
-					throw new ArgumentException ("One or more messages is missing information needed for threading.", "messages");
+					throw new ArgumentException ("One or more messages is missing information needed for threading.", nameof (messages));
 
 				var id = message.Envelope.MessageId;
 
@@ -298,7 +302,7 @@ namespace MailKit {
 					continue;
 
 				// remove the second message with the same subject
-				root.Children.RemoveAt (i);
+				root.Children.RemoveAt (i--);
 
 				// group these messages together...
 				if (match.Message == null && current.Message == null) {
@@ -379,7 +383,7 @@ namespace MailKit {
 
 			foreach (var message in messages) {
 				if (message.Envelope == null)
-					throw new ArgumentException ("One or more messages is missing information needed for threading.", "messages");
+					throw new ArgumentException ("One or more messages is missing information needed for threading.", nameof (messages));
 
 				var container = new ThreadableNode ();
 				container.Message = message;
@@ -445,18 +449,18 @@ namespace MailKit {
 		public static IList<MessageThread> Thread (this IEnumerable<IMessageSummary> messages, ThreadingAlgorithm algorithm, IList<OrderBy> orderBy)
 		{
 			if (messages == null)
-				throw new ArgumentNullException ("messages");
+				throw new ArgumentNullException (nameof (messages));
 
 			if (orderBy == null)
-				throw new ArgumentNullException ("orderBy");
+				throw new ArgumentNullException (nameof (orderBy));
 
 			if (orderBy.Count == 0)
-				throw new ArgumentException ("No sort order provided.", "orderBy");
+				throw new ArgumentException ("No sort order provided.", nameof (orderBy));
 
 			switch (algorithm) {
 			case ThreadingAlgorithm.OrderedSubject: return ThreadBySubject (messages, orderBy);
 			case ThreadingAlgorithm.References: return ThreadByReferences (messages, orderBy);
-			default: throw new ArgumentOutOfRangeException ("algorithm");
+			default: throw new ArgumentOutOfRangeException (nameof (algorithm));
 			}
 		}
 
@@ -520,7 +524,7 @@ namespace MailKit {
 		public static string GetThreadableSubject (string subject, out int replyDepth)
 		{
 			if (subject == null)
-				throw new ArgumentNullException ("subject");
+				throw new ArgumentNullException (nameof (subject));
 
 			replyDepth = 0;
 

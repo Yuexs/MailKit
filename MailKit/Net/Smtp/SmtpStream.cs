@@ -1,9 +1,9 @@
 ﻿//
 // SmtpStream.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,8 @@ using System;
 using System.IO;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+
 using Buffer = System.Buffer;
 
 #if NETFX_CORE
@@ -54,8 +56,8 @@ namespace MailKit.Net.Smtp {
 	/// </remarks>
 	class SmtpStream : Stream, ICancellableStream
 	{
-		static readonly Encoding UTF8 = Encoding.GetEncoding (65001, new EncoderExceptionFallback (), new DecoderExceptionFallback ());
-		static readonly Encoding Latin1 = Encoding.GetEncoding (28591);
+		static readonly Encoding Latin1;
+		static readonly Encoding UTF8;
 		const int ReadAheadSize = 128;
 		const int BlockSize = 4096;
 		const int PadSize = 4;
@@ -71,6 +73,17 @@ namespace MailKit.Net.Smtp {
 		int inputIndex = ReadAheadSize;
 		int inputEnd = ReadAheadSize;
 		bool disposed;
+
+		static SmtpStream ()
+		{
+			UTF8 = Encoding.GetEncoding (65001, new EncoderExceptionFallback (), new DecoderExceptionFallback ());
+
+			try {
+				Latin1 = Encoding.GetEncoding (28591);
+			} catch (NotSupportedException) {
+				Latin1 = Encoding.GetEncoding (1252);
+			}
+		}
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="MailKit.Net.Smtp.SmtpStream"/> class.
@@ -251,7 +264,7 @@ namespace MailKit.Net.Smtp {
 #endif
 		}
 
-		unsafe int ReadAhead (CancellationToken cancellationToken)
+		async Task<int> ReadAheadAsync (bool doAsync, CancellationToken cancellationToken)
 		{
 			int left = inputEnd - inputIndex;
 			int start = inputStart;
@@ -288,7 +301,7 @@ namespace MailKit.Net.Smtp {
 
 			try {
 #if !NETFX_CORE
-				bool buffered = Stream is SslStream;
+				bool buffered = !(Stream is NetworkStream);
 #else
 				bool buffered = true;
 #endif
@@ -296,11 +309,17 @@ namespace MailKit.Net.Smtp {
 				if (buffered) {
 					cancellationToken.ThrowIfCancellationRequested ();
 
-					nread = Stream.Read (input, start, end - start);
+					if (doAsync)
+						nread = await Stream.ReadAsync (input, start, end - start, cancellationToken).ConfigureAwait (false);
+					else
+						nread = Stream.Read (input, start, end - start);
 				} else {
-					Poll (SelectMode.SelectRead, cancellationToken);
-
-					nread = Stream.Read (input, start, end - start);
+					if (doAsync) {
+						nread = await Stream.ReadAsync (input, start, end - start, cancellationToken).ConfigureAwait (false);
+					} else {
+						Poll (SelectMode.SelectRead, cancellationToken);
+						nread = Stream.Read (input, start, end - start);
+					}
 				}
 
 				if (nread > 0) {
@@ -320,19 +339,19 @@ namespace MailKit.Net.Smtp {
 		static void ValidateArguments (byte[] buffer, int offset, int count)
 		{
 			if (buffer == null)
-				throw new ArgumentNullException ("buffer");
+				throw new ArgumentNullException (nameof (buffer));
 
 			if (offset < 0 || offset > buffer.Length)
-				throw new ArgumentOutOfRangeException ("offset");
+				throw new ArgumentOutOfRangeException (nameof (offset));
 
 			if (count < 0 || count > (buffer.Length - offset))
-				throw new ArgumentOutOfRangeException ("count");
+				throw new ArgumentOutOfRangeException (nameof (count));
 		}
 
 		void CheckDisposed ()
 		{
 			if (disposed)
-				throw new ObjectDisposedException ("SmtpStream");
+				throw new ObjectDisposedException (nameof (SmtpStream));
 		}
 
 		/// <summary>
@@ -369,6 +388,7 @@ namespace MailKit.Net.Smtp {
 		/// </exception>
 		public int Read (byte[] buffer, int offset, int count, CancellationToken cancellationToken)
 		{
+#if false // Note: this code will never get called as we always use ReadResponse() instead.
 			CheckDisposed ();
 
 			ValidateArguments (buffer, offset, count);
@@ -377,7 +397,7 @@ namespace MailKit.Net.Smtp {
 			int n;
 
 			if (length < count && length <= ReadAheadSize)
-				ReadAhead (cancellationToken);
+				await ReadAheadAsync (cancellationToken).ConfigureAwait (false);
 
 			length = inputEnd - inputIndex;
 			n = Math.Min (count, length);
@@ -386,6 +406,9 @@ namespace MailKit.Net.Smtp {
 			inputIndex += n;
 
 			return n;
+#else
+			throw new NotImplementedException ();
+#endif
 		}
 
 		/// <summary>
@@ -421,6 +444,63 @@ namespace MailKit.Net.Smtp {
 			return Read (buffer, offset, count, CancellationToken.None);
 		}
 
+		/// <summary>
+		/// Asynchronously reads a sequence of bytes from the stream and advances the position
+		/// within the stream by the number of bytes read.
+		/// </summary>
+		/// <remarks>
+		/// Reads a sequence of bytes from the stream and advances the position
+		/// within the stream by the number of bytes read.
+		/// </remarks>
+		/// <returns>The total number of bytes read into the buffer. This can be less than the number of bytes requested if that many
+		/// bytes are not currently available, or zero (0) if the end of the stream has been reached.</returns>
+		/// <param name="buffer">The buffer.</param>
+		/// <param name="offset">The buffer offset.</param>
+		/// <param name="count">The number of bytes to read.</param>
+		/// <param name="cancellationToken">The cancellation token.</param>
+		/// <exception cref="System.ArgumentNullException">
+		/// <paramref name="buffer"/> is <c>null</c>.
+		/// </exception>
+		/// <exception cref="System.ArgumentOutOfRangeException">
+		/// <para><paramref name="offset"/> is less than zero or greater than the length of <paramref name="buffer"/>.</para>
+		/// <para>-or-</para>
+		/// <para>The <paramref name="buffer"/> is not large enough to contain <paramref name="count"/> bytes strting
+		/// at the specified <paramref name="offset"/>.</para>
+		/// </exception>
+		/// <exception cref="System.ObjectDisposedException">
+		/// The stream has been disposed.
+		/// </exception>
+		/// <exception cref="System.OperationCanceledException">
+		/// The operation was canceled via the cancellation token.
+		/// </exception>
+		/// <exception cref="System.IO.IOException">
+		/// An I/O error occurred.
+		/// </exception>
+		public override Task<int> ReadAsync (byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+		{
+#if false // Note: this code will never get called as we always use ReadResponse() instead.
+			CheckDisposed ();
+
+			ValidateArguments (buffer, offset, count);
+
+			int length = inputEnd - inputIndex;
+			int n;
+
+			if (length < count && length <= ReadAheadSize)
+				await ReadAheadAsync (cancellationToken).ConfigureAwait (false);
+
+			length = inputEnd - inputIndex;
+			n = Math.Min (count, length);
+
+			Buffer.BlockCopy (input, inputIndex, buffer, offset, n);
+			inputIndex += n;
+
+			return n;
+#else
+			throw new NotImplementedException ();
+#endif
+		}
+
 		static bool TryParseInt32 (byte[] text, ref int index, int endIndex, out int value)
 		{
 			int startIndex = index;
@@ -433,27 +513,7 @@ namespace MailKit.Net.Smtp {
 			return index > startIndex;
 		}
 
-		/// <summary>
-		/// Read an SMTP server response.
-		/// </summary>
-		/// <remarks>
-		/// Reads a full command response from the SMTP server.
-		/// </remarks>
-		/// <returns>The response.</returns>
-		/// <param name="cancellationToken">The cancellation token.</param>
-		/// <exception cref="System.ObjectDisposedException">
-		/// The stream has been disposed.
-		/// </exception>
-		/// <exception cref="System.OperationCanceledException">
-		/// The operation was canceled via the cancellation token.
-		/// </exception>
-		/// <exception cref="System.IO.IOException">
-		/// An I/O error occurred.
-		/// </exception>
-		/// <exception cref="SmtpProtocolException">
-		/// An SMTP protocol error occurred.
-		/// </exception>
-		public SmtpResponse ReadResponse (CancellationToken cancellationToken)
+		async Task<SmtpResponse> ReadResponseAsync (bool doAsync, CancellationToken cancellationToken)
 		{
 			CheckDisposed ();
 
@@ -466,7 +526,7 @@ namespace MailKit.Net.Smtp {
 
 				do {
 					if (needInput) {
-						ReadAhead (cancellationToken);
+						await ReadAheadAsync (doAsync, cancellationToken).ConfigureAwait (false);
 						needInput = false;
 					}
 
@@ -527,13 +587,13 @@ namespace MailKit.Net.Smtp {
 				string message = null;
 
 				try {
-#if !NETFX_CORE
+#if !NETFX_CORE && !NETSTANDARD
 					message = UTF8.GetString (memory.GetBuffer (), 0, (int) memory.Length);
 #else
 					message = UTF8.GetString (memory.ToArray (), 0, (int) memory.Length);
 #endif
 				} catch (DecoderFallbackException) {
-#if !NETFX_CORE
+#if !NETFX_CORE && !NETSTANDARD
 					message = Latin1.GetString (memory.GetBuffer (), 0, (int) memory.Length);
 #else
 					message = Latin1.GetString (memory.ToArray (), 0, (int) memory.Length);
@@ -541,6 +601,110 @@ namespace MailKit.Net.Smtp {
 				}
 
 				return new SmtpResponse ((SmtpStatusCode) code, message);
+			}
+		}
+
+		/// <summary>
+		/// Read an SMTP server response.
+		/// </summary>
+		/// <remarks>
+		/// Reads a full command response from the SMTP server.
+		/// </remarks>
+		/// <returns>The response.</returns>
+		/// <param name="cancellationToken">The cancellation token.</param>
+		/// <exception cref="System.ObjectDisposedException">
+		/// The stream has been disposed.
+		/// </exception>
+		/// <exception cref="System.OperationCanceledException">
+		/// The operation was canceled via the cancellation token.
+		/// </exception>
+		/// <exception cref="System.IO.IOException">
+		/// An I/O error occurred.
+		/// </exception>
+		/// <exception cref="SmtpProtocolException">
+		/// An SMTP protocol error occurred.
+		/// </exception>
+		public SmtpResponse ReadResponse (CancellationToken cancellationToken)
+		{
+			return ReadResponseAsync (false, cancellationToken).GetAwaiter ().GetResult ();
+		}
+
+		/// <summary>
+		/// Asynchronously read an SMTP server response.
+		/// </summary>
+		/// <remarks>
+		/// Reads a full command response from the SMTP server.
+		/// </remarks>
+		/// <returns>The response.</returns>
+		/// <param name="cancellationToken">The cancellation token.</param>
+		/// <exception cref="System.ObjectDisposedException">
+		/// The stream has been disposed.
+		/// </exception>
+		/// <exception cref="System.OperationCanceledException">
+		/// The operation was canceled via the cancellation token.
+		/// </exception>
+		/// <exception cref="System.IO.IOException">
+		/// An I/O error occurred.
+		/// </exception>
+		/// <exception cref="SmtpProtocolException">
+		/// An SMTP protocol error occurred.
+		/// </exception>
+		public Task<SmtpResponse> ReadResponseAsync (CancellationToken cancellationToken)
+		{
+			return ReadResponseAsync (true, cancellationToken);
+		}
+
+		async Task WriteAsync (byte[] buffer, int offset, int count, bool doAsync, CancellationToken cancellationToken)
+		{
+			CheckDisposed ();
+
+			ValidateArguments (buffer, offset, count);
+
+			try {
+				int index = offset;
+				int left = count;
+
+				while (left > 0) {
+					int n = Math.Min (BlockSize - outputIndex, left);
+
+					if (outputIndex > 0 || n < BlockSize) {
+						// append the data to the output buffer
+						Buffer.BlockCopy (buffer, index, output, outputIndex, n);
+						outputIndex += n;
+						index += n;
+						left -= n;
+					}
+
+					if (outputIndex == BlockSize) {
+						// flush the output buffer
+						if (doAsync) {
+							await Stream.WriteAsync (output, 0, BlockSize, cancellationToken).ConfigureAwait (false);
+						} else {
+							Poll (SelectMode.SelectWrite, cancellationToken);
+							Stream.Write (output, 0, BlockSize);
+						}
+						logger.LogClient (output, 0, BlockSize);
+						outputIndex = 0;
+					}
+
+					if (outputIndex == 0) {
+						// write blocks of data to the stream without buffering
+						while (left >= BlockSize) {
+							if (doAsync) {
+								await Stream.WriteAsync (buffer, index, BlockSize, cancellationToken).ConfigureAwait (false);
+							} else {
+								Poll (SelectMode.SelectWrite, cancellationToken);
+								Stream.Write (buffer, index, BlockSize);
+							}
+							logger.LogClient (buffer, index, BlockSize);
+							index += BlockSize;
+							left -= BlockSize;
+						}
+					}
+				}
+			} catch {
+				IsConnected = false;
+				throw;
 			}
 		}
 
@@ -579,48 +743,7 @@ namespace MailKit.Net.Smtp {
 		/// </exception>
 		public void Write (byte[] buffer, int offset, int count, CancellationToken cancellationToken)
 		{
-			CheckDisposed ();
-
-			ValidateArguments (buffer, offset, count);
-
-			try {
-				int index = offset;
-				int left = count;
-
-				while (left > 0) {
-					int n = Math.Min (BlockSize - outputIndex, left);
-
-					if (outputIndex > 0 || n < BlockSize) {
-						// append the data to the output buffer
-						Buffer.BlockCopy (buffer, index, output, outputIndex, n);
-						outputIndex += n;
-						index += n;
-						left -= n;
-					}
-
-					if (outputIndex == BlockSize) {
-						// flush the output buffer
-						Poll (SelectMode.SelectWrite, cancellationToken);
-						Stream.Write (output, 0, BlockSize);
-						logger.LogClient (output, 0, BlockSize);
-						outputIndex = 0;
-					}
-
-					if (outputIndex == 0) {
-						// write blocks of data to the stream without buffering
-						while (left >= BlockSize) {
-							Poll (SelectMode.SelectWrite, cancellationToken);
-							Stream.Write (buffer, index, BlockSize);
-							logger.LogClient (buffer, index, BlockSize);
-							index += BlockSize;
-							left -= BlockSize;
-						}
-					}
-				}
-			} catch {
-				IsConnected = false;
-				throw;
-			}
+			WriteAsync (buffer, offset, count, false, cancellationToken).GetAwaiter ().GetResult ();
 		}
 
 		/// <summary>
@@ -658,6 +781,69 @@ namespace MailKit.Net.Smtp {
 		}
 
 		/// <summary>
+		/// Asynchronously writes a sequence of bytes to the stream and advances the current
+		/// position within this stream by the number of bytes written.
+		/// </summary>
+		/// <remarks>
+		/// Writes a sequence of bytes to the stream and advances the current
+		/// position within this stream by the number of bytes written.
+		/// </remarks>
+		/// <returns>A task that represents the asynchronous write operation.</returns>
+		/// <param name='buffer'>The buffer to write.</param>
+		/// <param name='offset'>The offset of the first byte to write.</param>
+		/// <param name='count'>The number of bytes to write.</param>
+		/// <param name="cancellationToken">The cancellation token.</param>
+		/// <exception cref="System.ArgumentNullException">
+		/// <paramref name="buffer"/> is <c>null</c>.
+		/// </exception>
+		/// <exception cref="System.ArgumentOutOfRangeException">
+		/// <para><paramref name="offset"/> is less than zero or greater than the length of <paramref name="buffer"/>.</para>
+		/// <para>-or-</para>
+		/// <para>The <paramref name="buffer"/> is not large enough to contain <paramref name="count"/> bytes strting
+		/// at the specified <paramref name="offset"/>.</para>
+		/// </exception>
+		/// <exception cref="System.ObjectDisposedException">
+		/// The stream has been disposed.
+		/// </exception>
+		/// <exception cref="System.NotSupportedException">
+		/// The stream does not support writing.
+		/// </exception>
+		/// <exception cref="System.OperationCanceledException">
+		/// The operation was canceled via the cancellation token.
+		/// </exception>
+		/// <exception cref="System.IO.IOException">
+		/// An I/O error occurred.
+		/// </exception>
+		public override Task WriteAsync (byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+		{
+			return WriteAsync (buffer, offset, count, true, cancellationToken);
+		}
+
+		async Task FlushAsync (bool doAsync, CancellationToken cancellationToken)
+		{
+			CheckDisposed ();
+
+			if (outputIndex == 0)
+				return;
+
+			try {
+				if (doAsync) {
+					await Stream.WriteAsync (output, 0, outputIndex, cancellationToken).ConfigureAwait (false);
+					await Stream.FlushAsync (cancellationToken).ConfigureAwait (false);
+				} else {
+					Poll (SelectMode.SelectWrite, cancellationToken);
+					Stream.Write (output, 0, outputIndex);
+					Stream.Flush ();
+				}
+				logger.LogClient (output, 0, outputIndex);
+				outputIndex = 0;
+			} catch {
+				IsConnected = false;
+				throw;
+			}
+		}
+
+		/// <summary>
 		/// Clears all buffers for this stream and causes any buffered data to be written
 		/// to the underlying device.
 		/// </summary>
@@ -680,21 +866,7 @@ namespace MailKit.Net.Smtp {
 		/// </exception>
 		public void Flush (CancellationToken cancellationToken)
 		{
-			CheckDisposed ();
-
-			if (outputIndex == 0)
-				return;
-
-			try {
-				Poll (SelectMode.SelectWrite, cancellationToken);
-				Stream.Write (output, 0, outputIndex);
-				Stream.Flush ();
-				logger.LogClient (output, 0, outputIndex);
-				outputIndex = 0;
-			} catch {
-				IsConnected = false;
-				throw;
-			}
+			FlushAsync (false, cancellationToken).GetAwaiter ().GetResult ();
 		}
 
 		/// <summary>
@@ -717,6 +889,33 @@ namespace MailKit.Net.Smtp {
 		public override void Flush ()
 		{
 			Flush (CancellationToken.None);
+		}
+
+		/// <summary>
+		/// Asynchronously clears all buffers for this stream and causes any buffered data to be written
+		/// to the underlying device.
+		/// </summary>
+		/// <remarks>
+		/// Clears all buffers for this stream and causes any buffered data to be written
+		/// to the underlying device.
+		/// </remarks>
+		/// <returns>A task that represents the asynchronous flush operation.</returns>
+		/// <param name="cancellationToken">The cancellation token.</param>
+		/// <exception cref="System.ObjectDisposedException">
+		/// The stream has been disposed.
+		/// </exception>
+		/// <exception cref="System.NotSupportedException">
+		/// The stream does not support writing.
+		/// </exception>
+		/// <exception cref="System.OperationCanceledException">
+		/// The operation was canceled via the cancellation token.
+		/// </exception>
+		/// <exception cref="System.IO.IOException">
+		/// An I/O error occurred.
+		/// </exception>
+		public override Task FlushAsync (CancellationToken cancellationToken)
+		{
+			return FlushAsync (true, cancellationToken);
 		}
 
 		/// <summary>

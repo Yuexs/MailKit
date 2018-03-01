@@ -1,1 +1,1 @@
-..\cov-analysis\bin\cov-build.exe --dir cov-int "%WinDir%\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" /t:Rebuild MailKit.Net40.sln
+..\cov-analysis\bin\cov-build.exe --dir cov-int "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\MSBuild\15.0\Bin\MSBuild.exe" /t:Rebuild MailKit.Coverity.sln

@@ -1,9 +1,9 @@
 ﻿//
 // MailTransport.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -55,7 +55,7 @@ namespace MailKit {
 		}
 
 		/// <summary>
-		/// Sends the specified message.
+		/// Send the specified message.
 		/// </summary>
 		/// <remarks>
 		/// <para>Sends the specified message.</para>
@@ -107,7 +107,7 @@ namespace MailKit {
 		}
 
 		/// <summary>
-		/// Asynchronously sends the specified message.
+		/// Asynchronously send the specified message.
 		/// </summary>
 		/// <remarks>
 		/// <para>Asynchronously sends the specified message.</para>
@@ -153,18 +153,11 @@ namespace MailKit {
 		/// </exception>
 		public virtual Task SendAsync (MimeMessage message, CancellationToken cancellationToken = default (CancellationToken), ITransferProgress progress = null)
 		{
-			if (message == null)
-				throw new ArgumentNullException ("message");
-
-			return Task.Factory.StartNew (() => {
-				lock (SyncRoot) {
-					Send (message, cancellationToken, progress);
-				}
-			}, cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
+			return SendAsync (FormatOptions.Default, message, cancellationToken, progress);
 		}
 
 		/// <summary>
-		/// Sends the specified message using the supplied sender and recipients.
+		/// Send the specified message using the supplied sender and recipients.
 		/// </summary>
 		/// <remarks>
 		/// Sends the specified message using the supplied sender and recipients.
@@ -213,7 +206,7 @@ namespace MailKit {
 		}
 
 		/// <summary>
-		/// Asynchronously sends the specified message using the supplied sender and recipients.
+		/// Asynchronously send the specified message using the supplied sender and recipients.
 		/// </summary>
 		/// <remarks>
 		/// Asynchronously sends the specified message using the supplied sender and recipients.
@@ -259,24 +252,11 @@ namespace MailKit {
 		/// </exception>
 		public virtual Task SendAsync (MimeMessage message, MailboxAddress sender, IEnumerable<MailboxAddress> recipients, CancellationToken cancellationToken = default (CancellationToken), ITransferProgress progress = null)
 		{
-			if (message == null)
-				throw new ArgumentNullException ("message");
-
-			if (sender == null)
-				throw new ArgumentNullException ("sender");
-
-			if (recipients == null)
-				throw new ArgumentNullException ("recipients");
-
-			return Task.Factory.StartNew (() => {
-				lock (SyncRoot) {
-					Send (message, sender, recipients, cancellationToken, progress);
-				}
-			}, cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
+			return SendAsync (FormatOptions.Default, message, sender, recipients, cancellationToken, progress);
 		}
 
 		/// <summary>
-		/// Sends the specified message.
+		/// Send the specified message.
 		/// </summary>
 		/// <remarks>
 		/// <para>Sends the specified message.</para>
@@ -331,7 +311,7 @@ namespace MailKit {
 		public abstract void Send (FormatOptions options, MimeMessage message, CancellationToken cancellationToken = default (CancellationToken), ITransferProgress progress = null);
 
 		/// <summary>
-		/// Asynchronously sends the specified message.
+		/// Asynchronously send the specified message.
 		/// </summary>
 		/// <remarks>
 		/// <para>Asynchronously sends the specified message.</para>
@@ -381,23 +361,10 @@ namespace MailKit {
 		/// <exception cref="ProtocolException">
 		/// A protocol exception occurred.
 		/// </exception>
-		public virtual Task SendAsync (FormatOptions options, MimeMessage message, CancellationToken cancellationToken = default (CancellationToken), ITransferProgress progress = null)
-		{
-			if (options == null)
-				throw new ArgumentNullException ("options");
-
-			if (message == null)
-				throw new ArgumentNullException ("message");
-
-			return Task.Factory.StartNew (() => {
-				lock (SyncRoot) {
-					Send (options, message, cancellationToken, progress);
-				}
-			}, cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
-		}
+		public abstract Task SendAsync (FormatOptions options, MimeMessage message, CancellationToken cancellationToken = default (CancellationToken), ITransferProgress progress = null);
 
 		/// <summary>
-		/// Sends the specified message using the supplied sender and recipients.
+		/// Send the specified message using the supplied sender and recipients.
 		/// </summary>
 		/// <remarks>
 		/// Sends the specified message using the supplied sender and recipients.
@@ -449,7 +416,7 @@ namespace MailKit {
 		public abstract void Send (FormatOptions options, MimeMessage message, MailboxAddress sender, IEnumerable<MailboxAddress> recipients, CancellationToken cancellationToken = default (CancellationToken), ITransferProgress progress = null);
 
 		/// <summary>
-		/// Asynchronously sends the specified message using the supplied sender and recipients.
+		/// Asynchronously send the specified message using the supplied sender and recipients.
 		/// </summary>
 		/// <remarks>
 		/// Asynchronously sends the specified message using the supplied sender and recipients.
@@ -499,26 +466,7 @@ namespace MailKit {
 		/// <exception cref="ProtocolException">
 		/// A protocol exception occurred.
 		/// </exception>
-		public virtual Task SendAsync (FormatOptions options, MimeMessage message, MailboxAddress sender, IEnumerable<MailboxAddress> recipients, CancellationToken cancellationToken = default (CancellationToken), ITransferProgress progress = null)
-		{
-			if (options == null)
-				throw new ArgumentNullException ("options");
-
-			if (message == null)
-				throw new ArgumentNullException ("message");
-
-			if (sender == null)
-				throw new ArgumentNullException ("sender");
-
-			if (recipients == null)
-				throw new ArgumentNullException ("recipients");
-
-			return Task.Factory.StartNew (() => {
-				lock (SyncRoot) {
-					Send (options, message, sender, recipients, cancellationToken, progress);
-				}
-			}, cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
-		}
+		public abstract Task SendAsync (FormatOptions options, MimeMessage message, MailboxAddress sender, IEnumerable<MailboxAddress> recipients, CancellationToken cancellationToken = default (CancellationToken), ITransferProgress progress = null);
 
 		/// <summary>
 		/// Occurs when a message is successfully sent via the transport.

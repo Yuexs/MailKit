@@ -1,9 +1,9 @@
 ﻿//
 // SaslMechanismScramSha1.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -49,15 +49,12 @@ namespace MailKit.Security {
 		/// <remarks>
 		/// Creates a new SCRAM-SHA-1 SASL context.
 		/// </remarks>
-		/// <param name="uri">The URI of the service.</param>
 		/// <param name="credentials">The user's credentials.</param>
 		/// <param name="entropy">Random characters to act as the cnonce token.</param>
 		/// <exception cref="System.ArgumentNullException">
-		/// <para><paramref name="uri"/> is <c>null</c>.</para>
-		/// <para>-or-</para>
-		/// <para><paramref name="credentials"/> is <c>null</c>.</para>
+		/// <paramref name="credentials"/> is <c>null</c>.
 		/// </exception>
-		internal SaslMechanismScramSha1 (Uri uri, ICredentials credentials, string entropy) : base (uri, credentials, entropy)
+		internal SaslMechanismScramSha1 (NetworkCredential credentials, string entropy) : base (credentials, entropy)
 		{
 		}
 
@@ -74,7 +71,60 @@ namespace MailKit.Security {
 		/// <para>-or-</para>
 		/// <para><paramref name="credentials"/> is <c>null</c>.</para>
 		/// </exception>
+		[Obsolete ("Use SaslMechanismScramSha1(NetworkCredential) instead.")]
 		public SaslMechanismScramSha1 (Uri uri, ICredentials credentials) : base (uri, credentials)
+		{
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="MailKit.Security.SaslMechanismScramSha1"/> class.
+		/// </summary>
+		/// <remarks>
+		/// Creates a new SCRAM-SHA-1 SASL context.
+		/// </remarks>
+		/// <param name="uri">The URI of the service.</param>
+		/// <param name="userName">The user name.</param>
+		/// <param name="password">The password.</param>
+		/// <exception cref="System.ArgumentNullException">
+		/// <para><paramref name="uri"/> is <c>null</c>.</para>
+		/// <para>-or-</para>
+		/// <para><paramref name="userName"/> is <c>null</c>.</para>
+		/// <para>-or-</para>
+		/// <para><paramref name="password"/> is <c>null</c>.</para>
+		/// </exception>
+		[Obsolete ("Use SaslMechanismScramSha1(string, string) instead.")]
+		public SaslMechanismScramSha1 (Uri uri, string userName, string password) : base (uri, userName, password)
+		{
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="MailKit.Security.SaslMechanismScramSha1"/> class.
+		/// </summary>
+		/// <remarks>
+		/// Creates a new SCRAM-SHA-1 SASL context.
+		/// </remarks>
+		/// <param name="credentials">The user's credentials.</param>
+		/// <exception cref="System.ArgumentNullException">
+		/// <paramref name="credentials"/> is <c>null</c>.
+		/// </exception>
+		public SaslMechanismScramSha1 (NetworkCredential credentials) : base (credentials)
+		{
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="MailKit.Security.SaslMechanismScramSha1"/> class.
+		/// </summary>
+		/// <remarks>
+		/// Creates a new SCRAM-SHA-1 SASL context.
+		/// </remarks>
+		/// <param name="userName">The user name.</param>
+		/// <param name="password">The password.</param>
+		/// <exception cref="System.ArgumentNullException">
+		/// <para><paramref name="userName"/> is <c>null</c>.</para>
+		/// <para>-or-</para>
+		/// <para><paramref name="password"/> is <c>null</c>.</para>
+		/// </exception>
+		public SaslMechanismScramSha1 (string userName, string password) : base (userName, password)
 		{
 		}
 
@@ -124,7 +174,7 @@ namespace MailKit.Security {
 
 			return hash;
 #else
-			using (var sha1 = new SHA1CryptoServiceProvider ())
+			using (var sha1 = SHA1.Create ())
 				return sha1.ComputeHash (str);
 #endif
 		}

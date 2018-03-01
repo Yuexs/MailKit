@@ -1,4 +1,4 @@
-//
+﻿//
 // Mono.Security.Protocol.Ntlm.Type1Message - Negotiation
 //
 // Authors: Sebastien Pouliot <sebastien@ximian.com>
@@ -6,7 +6,7 @@
 //
 // Copyright (c) 2003 Motus Technologies Inc. (http://www.motus.com)
 // Copyright (c) 2004 Novell, Inc (http://www.novell.com)
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // References
 // a.	NTLM Authentication Scheme for HTTP, Ronald Tschalär
@@ -44,12 +44,14 @@ using Encoding = Portable.Text.Encoding;
 namespace MailKit.Security.Ntlm {
 	class Type1Message : MessageBase
 	{
+		internal static readonly NtlmFlags DefaultFlags = NtlmFlags.NegotiateNtlm | NtlmFlags.NegotiateOem | NtlmFlags.NegotiateUnicode | NtlmFlags.RequestTarget;
+
 		string domain;
 		string host;
 
 		public Type1Message (string hostName, string domainName) : base (1)
 		{
-			Flags = NtlmFlags.NegotiateNtlm | NtlmFlags.NegotiateOem | NtlmFlags.NegotiateUnicode | NtlmFlags.RequestTarget;
+			Flags = DefaultFlags;
 			Domain = domainName;
 			Host = hostName;
 		}
@@ -102,12 +104,12 @@ namespace MailKit.Security.Ntlm {
 			// decode the domain
 			count = BitConverterLE.ToUInt16 (message, startIndex + 16);
 			offset = BitConverterLE.ToUInt16 (message, startIndex + 20);
-			domain = Encoding.ASCII.GetString (message, startIndex + offset, count);
+			domain = Encoding.UTF8.GetString (message, startIndex + offset, count);
 
 			// decode the workstation/host
 			count = BitConverterLE.ToUInt16 (message, startIndex + 24);
 			offset = BitConverterLE.ToUInt16 (message, startIndex + 28);
-			host = Encoding.ASCII.GetString (message, startIndex + offset, count);
+			host = Encoding.UTF8.GetString (message, startIndex + offset, count);
 
 			if (offset == 40) {
 				// decode the OS Version
@@ -157,10 +159,10 @@ namespace MailKit.Security.Ntlm {
 				message[39] = 0x0f;
 			}
 
-			var hostName = Encoding.ASCII.GetBytes (host.ToUpperInvariant ());
+			var hostName = Encoding.UTF8.GetBytes (host.ToUpperInvariant ());
 			Buffer.BlockCopy (hostName, 0, message, hostOffset, hostName.Length);
 
-			var domainName = Encoding.ASCII.GetBytes (domain.ToUpperInvariant ());
+			var domainName = Encoding.UTF8.GetBytes (domain.ToUpperInvariant ());
 			Buffer.BlockCopy (domainName, 0, message, domainOffset, domainName.Length);
 
 			return message;

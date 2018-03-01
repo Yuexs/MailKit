@@ -1,9 +1,9 @@
 ﻿//
 // FolderNotFoundException.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@
 
 using System;
 #if SERIALIZABLE
+using System.Security;
 using System.Runtime.Serialization;
 #endif
 
@@ -74,7 +75,7 @@ namespace MailKit {
 		public FolderNotFoundException (string message, string folderName, Exception innerException) : base (message, innerException)
 		{
 			if (folderName == null)
-				throw new ArgumentNullException ("folderName");
+				throw new ArgumentNullException (nameof (folderName));
 
 			FolderName = folderName;
 		}
@@ -93,7 +94,7 @@ namespace MailKit {
 		public FolderNotFoundException (string message, string folderName) : base (message)
 		{
 			if (folderName == null)
-				throw new ArgumentNullException ("folderName");
+				throw new ArgumentNullException (nameof (folderName));
 
 			FolderName = folderName;
 		}
@@ -108,12 +109,8 @@ namespace MailKit {
 		/// <exception cref="System.ArgumentNullException">
 		/// <paramref name="folderName"/> is <c>null</c>.
 		/// </exception>
-		public FolderNotFoundException (string folderName) : base ("The requested folder could not be found.")
+		public FolderNotFoundException (string folderName) : this ("The requested folder could not be found.", folderName)
 		{
-			if (folderName == null)
-				throw new ArgumentNullException ("folderName");
-
-			FolderName = folderName;
 		}
 
 		/// <summary>
@@ -140,10 +137,11 @@ namespace MailKit {
 		/// <exception cref="System.ArgumentNullException">
 		/// <paramref name="info"/> is <c>null</c>.
 		/// </exception>
+		[SecurityCritical]
 		public override void GetObjectData (SerializationInfo info, StreamingContext context)
 		{
 			if (info == null)
-				throw new ArgumentNullException ("info");
+				throw new ArgumentNullException (nameof (info));
 
 			info.AddValue ("FolderName", FolderName);
 

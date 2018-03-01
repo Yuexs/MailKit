@@ -1,9 +1,9 @@
 ﻿//
 // SaslMechanismNtlm.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -58,7 +58,60 @@ namespace MailKit.Security {
 		/// <para>-or-</para>
 		/// <para><paramref name="credentials"/> is <c>null</c>.</para>
 		/// </exception>
+		[Obsolete ("Use SaslMechanismNtlm(NetworkCredential) instead.")]
 		public SaslMechanismNtlm (Uri uri, ICredentials credentials) : base (uri, credentials)
+		{
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="MailKit.Security.SaslMechanismNtlm"/> class.
+		/// </summary>
+		/// <remarks>
+		/// Creates a new NTLM SASL context.
+		/// </remarks>
+		/// <param name="uri">The URI of the service.</param>
+		/// <param name="userName">The user name.</param>
+		/// <param name="password">The password.</param>
+		/// <exception cref="System.ArgumentNullException">
+		/// <para><paramref name="uri"/> is <c>null</c>.</para>
+		/// <para>-or-</para>
+		/// <para><paramref name="userName"/> is <c>null</c>.</para>
+		/// <para>-or-</para>
+		/// <para><paramref name="password"/> is <c>null</c>.</para>
+		/// </exception>
+		[Obsolete ("Use SaslMechanismNtlm(string, string) instead.")]
+		public SaslMechanismNtlm (Uri uri, string userName, string password) : base (uri, userName, password)
+		{
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="MailKit.Security.SaslMechanismNtlm"/> class.
+		/// </summary>
+		/// <remarks>
+		/// Creates a new NTLM SASL context.
+		/// </remarks>
+		/// <param name="credentials">The user's credentials.</param>
+		/// <exception cref="System.ArgumentNullException">
+		/// <paramref name="credentials"/> is <c>null</c>.
+		/// </exception>
+		public SaslMechanismNtlm (NetworkCredential credentials) : base (credentials)
+		{
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="MailKit.Security.SaslMechanismNtlm"/> class.
+		/// </summary>
+		/// <remarks>
+		/// Creates a new NTLM SASL context.
+		/// </remarks>
+		/// <param name="userName">The user name.</param>
+		/// <param name="password">The password.</param>
+		/// <exception cref="System.ArgumentNullException">
+		/// <para><paramref name="userName"/> is <c>null</c>.</para>
+		/// <para>-or-</para>
+		/// <para><paramref name="password"/> is <c>null</c>.</para>
+		/// </exception>
+		public SaslMechanismNtlm (string userName, string password) : base (userName, password)
 		{
 		}
 
@@ -106,10 +159,9 @@ namespace MailKit.Security {
 			if (IsAuthenticated)
 				throw new InvalidOperationException ();
 
-			var cred = Credentials.GetCredential (Uri, MechanismName);
-			string password = cred.Password ?? string.Empty;
-			string userName = cred.UserName;
-			string domain = cred.Domain;
+			string password = Credentials.Password ?? string.Empty;
+			string userName = Credentials.UserName;
+			string domain = Credentials.Domain;
 			MessageBase message;
 
 			if (string.IsNullOrEmpty (domain)) {
@@ -141,10 +193,7 @@ namespace MailKit.Security {
 
 		static MessageBase GetInitialResponse (string domain)
 		{
-			var type1 = new Type1Message (string.Empty, domain);
-			type1.Flags |= NtlmFlags.NegotiateNtlm2Key;
-
-			return type1;
+			return new Type1Message (string.Empty, domain);
 		}
 
 		static MessageBase GetChallengeResponse (string userName, string password, string domain, byte[] token, int startIndex, int length)
@@ -152,7 +201,9 @@ namespace MailKit.Security {
 			var type2 = new Type2Message (token, startIndex, length);
 			var type3 = new Type3Message (type2, userName, string.Empty);
 			type3.Password = password;
-			type3.Domain = domain;
+
+			if (!string.IsNullOrEmpty (domain))
+				type3.Domain = domain;
 
 			return type3;
 		}

@@ -1,9 +1,9 @@
-//
+﻿//
 // SmtpCommandException.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@
 
 using System;
 #if SERIALIZABLE
+using System.Security;
 using System.Runtime.Serialization;
 #endif
 
@@ -94,25 +95,21 @@ namespace MailKit.Net.Smtp {
 		/// </remarks>
 		/// <param name="info">The serialization info.</param>
 		/// <param name="context">The streaming context.</param>
+		/// <exception cref="System.ArgumentNullException">
+		/// <paramref name="info"/> is <c>null</c>.
+		/// </exception>
+		[SecuritySafeCritical]
 		protected SmtpCommandException (SerializationInfo info, StreamingContext context) : base (info, context)
 		{
 			MailboxAddress mailbox;
-			SmtpErrorCode code;
 			string value;
 
 			value = info.GetString ("Mailbox");
 			if (!string.IsNullOrEmpty (value) && MailboxAddress.TryParse (value, out mailbox))
 				Mailbox = mailbox;
 
-			value = info.GetString ("ErrorCode");
-			if (!Enum.TryParse (value, out code))
-				ErrorCode = SmtpErrorCode.MessageNotAccepted;
-			else
-				ErrorCode = code;
-
-			ErrorCode = (SmtpErrorCode) info.GetInt32 ("ErrorCode");
-
-			StatusCode = (SmtpStatusCode) info.GetInt32 ("StatusCode");
+			ErrorCode = (SmtpErrorCode) info.GetValue ("ErrorCode", typeof (SmtpErrorCode));
+			StatusCode = (SmtpStatusCode) info.GetValue ("StatusCode", typeof (SmtpStatusCode));
 		}
 #endif
 
@@ -161,18 +158,18 @@ namespace MailKit.Net.Smtp {
 		/// <exception cref="System.ArgumentNullException">
 		/// <paramref name="info"/> is <c>null</c>.
 		/// </exception>
+		[SecurityCritical]
 		public override void GetObjectData (SerializationInfo info, StreamingContext context)
 		{
-			if (info == null)
-				throw new ArgumentNullException ("info");
+			base.GetObjectData (info, context);
 
 			if (Mailbox != null)
 				info.AddValue ("Mailbox", Mailbox.ToString ());
+			else
+				info.AddValue ("Mailbox", string.Empty);
 
-			info.AddValue ("ErrorCode", (int) ErrorCode);
-			info.AddValue ("StatusCode", (int) StatusCode);
-
-			base.GetObjectData (info, context);
+			info.AddValue ("ErrorCode", ErrorCode, typeof (SmtpErrorCode));
+			info.AddValue ("StatusCode", StatusCode, typeof (SmtpStatusCode));
 		}
 #endif
 

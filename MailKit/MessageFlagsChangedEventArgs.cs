@@ -1,9 +1,9 @@
 ﻿//
 // MessageFlagsChangedEventArgs.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -74,10 +74,13 @@ namespace MailKit {
 		/// <exception cref="System.ArgumentNullException">
 		/// <paramref name="userFlags"/> is <c>null</c>.
 		/// </exception>
+		/// <exception cref="System.ArgumentOutOfRangeException">
+		/// <paramref name="index"/> is out of range.
+		/// </exception>
 		public MessageFlagsChangedEventArgs (int index, MessageFlags flags, HashSet<string> userFlags) : base (index)
 		{
 			if (userFlags == null)
-				throw new ArgumentNullException ("userFlags");
+				throw new ArgumentNullException (nameof (userFlags));
 
 			UserFlags = userFlags;
 			Flags = flags;
@@ -92,6 +95,9 @@ namespace MailKit {
 		/// <param name="index">The message index.</param>
 		/// <param name="flags">The message flags.</param>
 		/// <param name="modseq">The modification sequence value.</param>
+		/// <exception cref="System.ArgumentOutOfRangeException">
+		/// <paramref name="index"/> is out of range.
+		/// </exception>
 		public MessageFlagsChangedEventArgs (int index, MessageFlags flags, ulong modseq) : base (index)
 		{
 			UserFlags = new HashSet<string> ();
@@ -112,10 +118,13 @@ namespace MailKit {
 		/// <exception cref="System.ArgumentNullException">
 		/// <paramref name="userFlags"/> is <c>null</c>.
 		/// </exception>
+		/// <exception cref="System.ArgumentOutOfRangeException">
+		/// <paramref name="index"/> is out of range.
+		/// </exception>
 		public MessageFlagsChangedEventArgs (int index, MessageFlags flags, HashSet<string> userFlags, ulong modseq) : base (index)
 		{
 			if (userFlags == null)
-				throw new ArgumentNullException ("userFlags");
+				throw new ArgumentNullException (nameof (userFlags));
 
 			UserFlags = userFlags;
 			ModSeq = modseq;
@@ -131,6 +140,9 @@ namespace MailKit {
 		/// <param name="index">The message index.</param>
 		/// <param name="uid">The unique id of the message.</param>
 		/// <param name="flags">The message flags.</param>
+		/// <exception cref="System.ArgumentOutOfRangeException">
+		/// <paramref name="index"/> is out of range.
+		/// </exception>
 		public MessageFlagsChangedEventArgs (int index, UniqueId uid, MessageFlags flags) : base (index)
 		{
 			UserFlags = new HashSet<string> ();
@@ -151,10 +163,13 @@ namespace MailKit {
 		/// <exception cref="System.ArgumentNullException">
 		/// <paramref name="userFlags"/> is <c>null</c>.
 		/// </exception>
+		/// <exception cref="System.ArgumentOutOfRangeException">
+		/// <paramref name="index"/> is out of range.
+		/// </exception>
 		public MessageFlagsChangedEventArgs (int index, UniqueId uid, MessageFlags flags, HashSet<string> userFlags) : base (index)
 		{
 			if (userFlags == null)
-				throw new ArgumentNullException ("userFlags");
+				throw new ArgumentNullException (nameof (userFlags));
 
 			UserFlags = userFlags;
 			UniqueId = uid;
@@ -171,6 +186,9 @@ namespace MailKit {
 		/// <param name="uid">The unique id of the message.</param>
 		/// <param name="flags">The message flags.</param>
 		/// <param name="modseq">The modification sequence value.</param>
+		/// <exception cref="System.ArgumentOutOfRangeException">
+		/// <paramref name="index"/> is out of range.
+		/// </exception>
 		public MessageFlagsChangedEventArgs (int index, UniqueId uid, MessageFlags flags, ulong modseq) : base (index)
 		{
 			UserFlags = new HashSet<string> ();
@@ -193,10 +211,13 @@ namespace MailKit {
 		/// <exception cref="System.ArgumentNullException">
 		/// <paramref name="userFlags"/> is <c>null</c>.
 		/// </exception>
+		/// <exception cref="System.ArgumentOutOfRangeException">
+		/// <paramref name="index"/> is out of range.
+		/// </exception>
 		public MessageFlagsChangedEventArgs (int index, UniqueId uid, MessageFlags flags, HashSet<string> userFlags, ulong modseq) : base (index)
 		{
 			if (userFlags == null)
-				throw new ArgumentNullException ("userFlags");
+				throw new ArgumentNullException (nameof (userFlags));
 
 			UserFlags = userFlags;
 			ModSeq = modseq;

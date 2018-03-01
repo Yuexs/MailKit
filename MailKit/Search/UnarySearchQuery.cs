@@ -1,9 +1,9 @@
 ﻿//
 // UnarySearchQuery.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,10 @@
 // THE SOFTWARE.
 //
 
-namespace MailKit.Search {
+using System;
+
+namespace MailKit.Search
+{
 	/// <summary>
 	/// A unary search query such as a NOT expression.
 	/// </summary>
@@ -33,8 +36,22 @@ namespace MailKit.Search {
 	/// </remarks>
 	public class UnarySearchQuery : SearchQuery
 	{
-		internal UnarySearchQuery (SearchTerm term, SearchQuery operand) : base (term)
+		/// <summary>
+		/// Initializes a new instance of the <see cref="T:MailKit.Search.UnarySearchQuery"/> class.
+		/// </summary>
+		/// <remarks>
+		/// Creates a new unary search query.
+		/// </remarks>
+		/// <param name="term">The search term.</param>
+		/// <param name="operand">The operand.</param>
+		/// <exception cref="System.ArgumentNullException">
+		/// <paramref name="operand"/> is <c>null</c>.
+		/// </exception>
+		public UnarySearchQuery (SearchTerm term, SearchQuery operand) : base (term)
 		{
+			if (operand == null)
+				throw new ArgumentNullException (nameof (operand));
+
 			Operand = operand;
 		}
 
@@ -51,17 +68,15 @@ namespace MailKit.Search {
 
 		internal override SearchQuery Optimize (ISearchQueryOptimizer optimizer)
 		{
-			SearchQuery unary = null;
+			var operand = Operand.Optimize (optimizer);
+			SearchQuery unary;
 
-			if (optimizer.CanReduce (Operand))
-				unary = new UnarySearchQuery (Term, optimizer.Reduce (Operand));
+			if (operand != Operand)
+				unary = new UnarySearchQuery (Term, operand);
 			else
 				unary = this;
 
-			if (optimizer.CanReduce (unary))
-				return optimizer.Reduce (unary);
-
-			return unary;
+			return optimizer.Reduce (unary);
 		}
 	}
 }

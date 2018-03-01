@@ -1,9 +1,9 @@
 ﻿//
 // OrderBy.cs
 //
-// Author: Jeffrey Stedfast <jeff@xamarin.com>
+// Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2015 Xamarin Inc. (www.xamarin.com)
+// Copyright (c) 2013-2018 Xamarin Inc. (www.xamarin.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,28 +24,55 @@
 // THE SOFTWARE.
 //
 
+using System;
+
 namespace MailKit.Search {
 	/// <summary>
 	/// Specifies a sort order for search results.
 	/// </summary>
 	/// <remarks>
 	/// You can combine multiple <see cref="OrderBy"/> rules to specify the sort
-	/// order that <see cref="IMailFolder.Search(SearchQuery,System.Collections.Generic.IList&lt;OrderBy&gt;,System.Threading.CancellationToken)"/>
+	/// order that <see cref="IMailFolder.Sort(SearchQuery,System.Collections.Generic.IList&lt;OrderBy&gt;,System.Threading.CancellationToken)"/>
 	/// should return the results in.
 	/// </remarks>
 	public class OrderBy
 	{
-		OrderBy (OrderByType type, SortOrder order)
+		/// <summary>
+		/// Initializes a new instance of the <see cref="MailKit.Search.OrderBy"/> class.
+		/// </summary>
+		/// <param name="type">The field to sort by.</param>
+		/// <param name="order">The sort order.</param>
+		/// <exception cref="System.ArgumentOutOfRangeException">
+		/// <paramref name="order"/> cannot be <see cref="SortOrder.None"/>.
+		/// </exception>
+		public OrderBy (OrderByType type, SortOrder order)
 		{
+			if (order == SortOrder.None)
+				throw new ArgumentOutOfRangeException (nameof (order));
+
 			Order = order;
 			Type = type;
 		}
 
-		internal OrderByType Type {
+		/// <summary>
+		/// Gets the field used for sorting.
+		/// </summary>
+		/// <remarks>
+		/// Gets the field used for sorting.
+		/// </remarks>
+		/// <value>The field used for sorting.</value>
+		public OrderByType Type {
 			get; private set;
 		}
 
-		internal SortOrder Order {
+		/// <summary>
+		/// Gets the sort order.
+		/// </summary>
+		/// <remarks>
+		/// Gets the sort order.
+		/// </remarks>
+		/// <value>The sort order.</value>
+		public SortOrder Order {
 			get; private set;
 		}
 

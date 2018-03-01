@@ -23,20 +23,40 @@ MailKit is a cross-platform mail client library built on top of [MimeKit](https:
   * NTLM
   * PLAIN
   * SCRAM-SHA-1
+  * SCRAM-SHA-256
   * XOAUTH2 (partial support - you need to fetch the auth tokens yourself)
 * SMTP Client
   * Supports all of the SASL mechanisms listed above.
   * Supports SSL-wrapped connections via the "smtps" protocol.
   * Supports client SSL/TLS certificates.
-  * Supports the following extensions: STARTTLS, SIZE, DSN, 8BITMIME, PIPELINING, BINARYMIME, SMTPUTF8
+  * Supports the following extensions:
+    * [SIZE](https://tools.ietf.org/html/rfc1870)
+    * [DSN](https://tools.ietf.org/html/rfc1891)
+    * [AUTH](https://tools.ietf.org/html/rfc2554)
+    * [8BITMIME](https://tools.ietf.org/html/rfc2821)
+    * [PIPELINING](https://tools.ietf.org/html/rfc2920)
+    * [BINARYMIME](https://tools.ietf.org/html/rfc3030)
+    * [CHUNKING](https://tools.ietf.org/html/rfc3030)
+    * [STARTTLS](https://tools.ietf.org/html/rfc3207)
+    * [SMTPUTF8](https://tools.ietf.org/html/rfc6531)
   * All APIs are cancellable.
   * Async APIs are available.
 * POP3 Client
   * Supports all of the SASL mechanisms listed above.
-  * Also supports authentication via APOP and USER/PASS.
+  * Also supports authentication via [APOP](https://tools.ietf.org/html/rfc1939#page-15) and `USER`/`PASS`.
   * Supports SSL-wrapped connections via the "pops" protocol.
   * Supports client SSL/TLS certificates.
-  * Supports the following extensions: STLS, UIDL, PIPELINING, UTF8, LANG
+  * Supports the following extensions:
+    * [TOP](https://tools.ietf.org/html/rfc1939#page-11)
+    * [UIDL](https://tools.ietf.org/html/rfc1939#page-12)
+    * [EXPIRE](https://tools.ietf.org/html/rfc2449)
+    * [LOGIN-DELAY](https://tools.ietf.org/html/rfc2449)
+    * [PIPELINING](https://tools.ietf.org/html/rfc2449)
+    * [SASL](https://tools.ietf.org/html/rfc2449)
+    * [STLS](https://tools.ietf.org/html/rfc2595)
+    * [UTF8](https://tools.ietf.org/html/rfc6856)
+    * [UTF8=USER](https://tools.ietf.org/html/rfc6856)
+    * [LANG](https://tools.ietf.org/html/rfc6856)
   * All APIs are cancellable.
   * Async APIs are available.
 * IMAP4 Client
@@ -44,35 +64,43 @@ MailKit is a cross-platform mail client library built on top of [MimeKit](https:
   * Supports SSL-wrapped connections via the "imaps" protocol.
   * Supports client SSL/TLS certificates.
   * Supports the following extensions:
-    * ACL
-    * QUOTA
-    * LITERAL+
-    * IDLE
-    * NAMESPACE
-    * ID
-    * CHILDREN
-    * LOGINDISABLED
-    * STARTTLS
-    * MULTIAPPEND
-    * UNSELECT
-    * UIDPLUS
-    * CONDSTORE
-    * ESEARCH
-    * SASL-IR
-    * COMPRESS
-    * WITHIN
-    * ENABLE
-    * QRESYNC
-    * SORT
-    * THREAD
-    * ESORT (partial)
-    * SPECIAL-USE
-    * SEARCH=FUZZY (partial)
-    * MOVE
-    * UTF8=ACCEPT
-    * UTF8=ONLY
-    * XLIST
-    * X-GM-EXT1 (X-GM-MSGID, X-GM-THRID, X-GM-RAW and X-GM-LABELS)
+    * [ACL](https://tools.ietf.org/html/rfc4314)
+    * [QUOTA](https://tools.ietf.org/html/rfc2087)
+    * [LITERAL+](https://tools.ietf.org/html/rfc2088)
+    * [IDLE](https://tools.ietf.org/html/rfc2177)
+    * [NAMESPACE](https://tools.ietf.org/html/rfc2342)
+    * [ID](https://tools.ietf.org/html/rfc2971)
+    * [CHILDREN](https://tools.ietf.org/html/rfc3348)
+    * [LOGINDISABLED](https://tools.ietf.org/html/rfc3501)
+    * [STARTTLS](https://tools.ietf.org/html/rfc3501)
+    * [MULTIAPPEND](https://tools.ietf.org/html/rfc3502)
+    * [UNSELECT](https://tools.ietf.org/html/rfc3691)
+    * [UIDPLUS](https://tools.ietf.org/html/rfc4315)
+    * [CONDSTORE](https://tools.ietf.org/html/rfc4551)
+    * [ESEARCH](https://tools.ietf.org/html/rfc4731)
+    * [SASL-IR](https://tools.ietf.org/html/rfc4959)
+    * [COMPRESS](https://tools.ietf.org/html/rfc4978)
+    * [WITHIN](https://tools.ietf.org/html/rfc5032)
+    * [ENABLE](https://tools.ietf.org/html/rfc5161)
+    * [QRESYNC](https://tools.ietf.org/html/rfc5162)
+    * [SORT](https://tools.ietf.org/html/rfc5256)
+    * [THREAD](https://tools.ietf.org/html/rfc5256)
+    * [LIST-EXTENDED](https://tools.ietf.org/html/rfc5258)
+    * [ESORT](https://tools.ietf.org/html/rfc5267)
+    * [METADATA](https://tools.ietf.org/html/rfc5464)
+    * [FILTERS](https://tools.ietf.org/html/rfc5466)
+    * [LIST-STATUS](https://tools.ietf.org/html/rfc5819)
+    * [SORT=DISPLAY](https://tools.ietf.org/html/rfc5957)
+    * [SPECIAL-USE](https://tools.ietf.org/html/rfc6154)
+    * [CREATE-SPECIAL-USE](https://tools.ietf.org/html/rfc6154)
+    * [SEARCH=FUZZY](https://tools.ietf.org/html/rfc6203)
+    * [MOVE](https://tools.ietf.org/html/rfc6851)
+    * [UTF8=ACCEPT](https://tools.ietf.org/html/rfc6855)
+    * [UTF8=ONLY](https://tools.ietf.org/html/rfc6855)
+    * [LITERAL-](https://tools.ietf.org/html/rfc7888)
+    * [APPENDLIMIT](https://tools.ietf.org/html/rfc7889)
+    * [XLIST](https://developers.google.com/gmail/imap_extensions)
+    * [X-GM-EXT1](https://developers.google.com/gmail/imap_extensions) (X-GM-MSGID, X-GM-THRID, X-GM-RAW and X-GM-LABELS)
   * All APIs are cancellable.
   * Async APIs are available.
 * Client-side sorting and threading of messages.
@@ -97,7 +125,7 @@ of half-working, non-RFC-compliant IMAP implementations out there that it was fi
 designed and implemented IMAP client library to be written.
 
 For POP3, libraries such as OpenPOP.NET are actually fairly decent, although the MIME parser is far
-too strict - throwing exceptions any time it encounteres a Content-Type or Content-Disposition
+too strict - throwing exceptions any time it encounters a Content-Type or Content-Disposition
 parameter that it doesn't already know about, which, if you read over the mailing-list, is a problem
 that OpenPOP.NET users are constantly running into. MailKit's Pop3Client, of course, doesn't have this
 problem. It also parses messages directly from the socket instead of downloading the message into a
@@ -113,7 +141,7 @@ which should improve performance of sending messages (although might not be very
 
 ## License Information
 
-MailKit is Copyright (C) 2013-2015 Xamarin Inc. and is licensed under the MIT license:
+MailKit is Copyright (C) 2013-2018 Xamarin Inc. and is licensed under the MIT license:
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
@@ -138,32 +166,56 @@ MailKit is Copyright (C) 2013-2015 Xamarin Inc. and is licensed under the MIT li
 The easiest way to install MailKit is via [NuGet](https://www.nuget.org/packages/MailKit/).
 
 In Visual Studio's [Package Manager Console](http://docs.nuget.org/docs/start-here/using-the-package-manager-console),
-simply enter the following command:
+enter the following command:
 
     Install-Package MailKit
 
+## Getting the Source Code
+
+First, you'll need to clone MailKit from my GitHub repository. To do this using the command-line version of Git,
+you'll need to issue the following command in your terminal:
+
+    git clone --recursive https://github.com/jstedfast/MailKit.git
+
+If you are using [TortoiseGit](https://tortoisegit.org) on Windows, you'll need to right-click in the directory
+where you'd like to clone MailKit and select **Git Clone...** in the menu. Once you do that, you'll get the
+following dialog:
+
+![Download the source code using TortoiseGit](https://github.com/jstedfast/MailKit/blob/master/Documentation/media/clone.png)
+
+Fill in the areas outlined in red and then click **OK**. This will recursively clone MailKit onto your local machine.
+
+## Updating the Source Code
+
+Occasionally you might want to update your local copy of the source code if I have made changes to MailKit since you
+downloaded the source code in the step above. To do this using the command-line version of Git, you'll need to issue
+the following commands in your terminal within the MailKit directory:
+
+    git pull
+    git submodule update
+
+If you are using [TortoiseGit](https://tortoisegit.org) on Windows, you'll need to right-click on the MailKit
+directory and select **Git Sync...** in the menu. Once you do that, you'll need to click the **Pull** and
+**Submodule Update** buttons in the following dialog:
+
+![Update the source code using TortoiseGit](https://github.com/jstedfast/MailKit/blob/master/Documentation/media/update.png)
+
 ## Building
 
-First, you'll need to clone MailKit from my GitHub repository:
+In the top-level MailKit directory, there are a number of solution files; they are:
 
-    git clone https://github.com/jstedfast/MailKit.git
-    cd MailKit
-    git submodule update --init --recursive
-
-In the top-level MailKit source directory, there are three solution files: MailKit.sln, MailKit.Net40.sln and MailKit.Mobile.sln.
-
-* MailKit.sln includes the projects for .NET 4.5, .NET 4.0, Xamarin.Android, and Xamarin.iOS.
-* MailKit.Net45.sln includes the .NET 4.5 project and the unit tests.
-* MailKit.Net40.sln just includes the .NET 4.0 project.
-* MailKit.Mobile.sln just includes the Xamarin.iOS and Xamarin.Android projects.
-* MailKit.Win.sln just includes the Windows 8.1 Universal project (aka wpa81).
+* **MailKit.sln** - includes the projects for .NET 4.5, .NETStandard 1.3/1.6/2.0, Windows Universal 8.1,
+  Xamarin.Android, and Xamarin.iOS.
+* **MailKit.Mobile.sln** - includes only the Xamarin.iOS and Xamarin.Android projects.
+* **MailKit.Net45.sln** - includes only the .NET 4.5 project and the unit tests.
 
 If you don't have the Xamarin products, you'll probably want to open the MailKit.Net45.sln instead of MailKit.sln.
 
-Once you've opened the appropriate MailKit solution file in either Xamarin Studio or Visual Studio 2010+ (either will work),
-you can simply choose the Debug or Release build configuration and then build.
+Once you've opened the appropriate MailKit solution file in either [Xamarin Studio](https://www.xamarin.com/download)
+or [Visual Studio 2017](https://www.visualstudio.com/downloads/), you can choose the **Debug** or **Release**
+build configuration and then build.
 
-Note: The Release build will generate the xml API documentation, but the Debug build will not.
+Note: The **Release** build will generate the xml API documentation, but the **Debug** build will not.
 
 ## Using MailKit
 
@@ -197,11 +249,10 @@ I just wanted to let you know that Monica and I were going to go play some paint
 			};
 
 			using (var client = new SmtpClient ()) {
-				client.Connect ("smtp.friends.com", 587, false);
+				// For demo-purposes, accept all SSL certificates (in case the server supports STARTTLS)
+				client.ServerCertificateValidationCallback = (s,c,h,e) => true;
 
-				// Note: since we don't have an OAuth2 token, disable
-				// the XOAUTH2 authentication mechanism.
-				client.AuthenticationMechanisms.Remove ("XOAUTH2");
+				client.Connect ("smtp.friends.com", 587, false);
 
 				// Note: only needed if the SMTP server requires authentication
 				client.Authenticate ("joey", "password");
@@ -231,11 +282,10 @@ namespace TestClient {
 		public static void Main (string[] args)
 		{
 			using (var client = new Pop3Client ()) {
-				client.Connect ("pop.friends.com", 110, false);
+				// For demo-purposes, accept all SSL certificates (in case the server supports STARTTLS)
+				client.ServerCertificateValidationCallback = (s,c,h,e) => true;
 
-				// Note: since we don't have an OAuth2 token, disable
-				// the XOAUTH2 authentication mechanism.
-				client.AuthenticationMechanisms.Remove ("XOAUTH2");
+				client.Connect ("pop.friends.com", 110, false);
 
 				client.Authenticate ("joey", "password");
 
@@ -269,11 +319,10 @@ namespace TestClient {
 		public static void Main (string[] args)
 		{
 			using (var client = new ImapClient ()) {
-				client.Connect ("imap.friends.com", 993, true);
+				// For demo-purposes, accept all SSL certificates
+				client.ServerCertificateValidationCallback = (s,c,h,e) => true;
 
-				// Note: since we don't have an OAuth2 token, disable
-				// the XOAUTH2 authentication mechanism.
-				client.AuthenticationMechanisms.Remove ("XOAUTH2");
+				client.Connect ("imap.friends.com", 993, true);
 
 				client.Authenticate ("joey", "password");
 
@@ -310,21 +359,27 @@ The results of a Fetch command can also be used to download individual MIME part
 than downloading the entire message. For example:
 
 ```csharp
-foreach (var summary in inbox.Fetch (0, -1, MessageSummaryItems.Full | MessageSummaryItems.UniqueId)) {
-	var text = summary.Body as BodyPartText;
-
-	if (text == null) {
-		var multipart = summary.Body as BodyPartMultipart;
-
-		if (multipart != null)
-			text = multipart.BodyParts.OfType<BodyPartText> ().FirstOrDefault ();
-	}
-
-	if (text == null)
-		continue;
-
-	// this will download *just* the text part
-	var part = inbox.GetBodyPart (summary.UniqueId.Value, text);
+foreach (var summary in inbox.Fetch (0, -1, MessageSummaryItems.UniqueId | MessageSummaryItems.BodyStructure)) {
+    if (summary.TextBody != null) {
+	// this will download *just* the text/plain part
+	var text = inbox.GetBodyPart (summary.UniqueId, summary.TextBody);
+    }
+    
+    if (summary.HtmlBody != null) {
+        // this will download *just* the text/html part
+	var html = inbox.GetBodyPart (summary.UniqueId, summary.HtmlBody);
+    }
+    
+    // if you'd rather grab, say, an image attachment... it might look something like this:
+    if (summary.Body is BodyPartMultipart) {
+        var multipart = (BodyPartMultipart) summary.Body;
+        
+        var attachment = multipart.BodyParts.OfType<BodyPartBasic> ().FirstOrDefault (x => x.FileName == "logo.jpg");
+        if (attachment != null) {
+            // this will download *just* the attachment
+            var part = inbox.GetBodyPart (summary.UniqueId, attachment);
+        }
+    }
 }
 ```
 
@@ -420,16 +475,15 @@ How you handle this is up to you.
 
 ## Contributing
 
-The first thing you'll need to do is fork MailKit to your own GitHub repository. Once you do that,
-
-    git clone git@github.com/<your-account>/MailKit.git
+The first thing you'll need to do is fork MailKit to your own GitHub repository. For instructions on how to
+do that, see the section titled **Getting the Source Code**.
 
 If you use [Xamarin Studio](http://xamarin.com/studio) or [MonoDevelop](http://monodevelop.com), all of the
 solution files are configured with the coding style used by MailKit. If you use Visual Studio or some
 other editor, please try to maintain the existing coding style as best as you can.
 
 Once you've got some changes that you'd like to submit upstream to the official MailKit repository,
-simply send me a Pull Request and I will try to review your changes in a timely manner.
+send me a **Pull Request** and I will try to review your changes in a timely manner.
 
 If you'd like to contribute but don't have any particular features in mind to work on, check out the issue
 tracker and look for something that might pique your interest!
@@ -437,14 +491,12 @@ tracker and look for something that might pique your interest!
 ## Donate
 
 MailKit is a personal open source project that I have put thousands of hours into perfecting with the
-goal of making it not only the very best email framework for .NET, but the best email framework for
-any programming language. I need your help to achieve this.
+goal of making it the very best email framework for .NET. I need your help to achieve this.
 
-<a href="http://www.pledgie.com/campaigns/29300" target="_blank">
-  <img src="http://www.pledgie.com/campaigns/29300.png?skin_name=chrome"
-       alt="Click here to lend your support to MimeKit and MailKit by making a donation via pledgie.com!"
-       border="0" />
-</a>
+Donating helps pay for things such as web hosting, domain registration and licenses for developer tools
+such as a performance profiler, memory profiler, a static code analysis tool, and more.
+
+<a href="https://liberapay.com/MimeKit/donate" _target="blank"><img alt="Click here to lend your support to MimeKit and MailKit by making a donation!" src="https://liberapay.com/assets/widgets/donate.svg"></a>
 
 ## Reporting Bugs
 
@@ -452,9 +504,12 @@ Have a bug or a feature request? [Please open a new issue](https://github.com/js
 
 Before opening a new issue, please search for existing issues to avoid submitting duplicates.
 
-If you are submitting a bug about an unexpected token being encountered, please include a [protocol
+If MailKit does not work with your mail server, please include a [protocol
 log](https://github.com/jstedfast/MailKit/blob/master/FAQ.md#ProtocolLog) in your bug report, otherwise
 there is nothing I can do to fix the problem.
+
+If you are getting an exception from somewhere within MailKit, don't just provide the `Exception.Message`
+string. Please include the `Exception.StackTrace` as well. The `Message`, by itself, is useless.
 
 ## Documentation
 
